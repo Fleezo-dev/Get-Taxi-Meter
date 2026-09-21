@@ -1,0 +1,6 @@
+{
+  "name": "Get Taxi Meter",
+  "description": "Professional native Android taxi meter with persistent foreground location service, robust GPS filtering, dynamic waiting/moving fare calculation, trip recovery, and offline support.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

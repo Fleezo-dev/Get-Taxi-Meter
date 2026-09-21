@@ -1,0 +1,113 @@
+package com.example
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import com.example.model.TripStatus
+import com.example.ui.screens.BatteryGuidanceScreen
+import com.example.ui.screens.HomeScreen
+import com.example.ui.screens.LiveMeterScreen
+import com.example.ui.screens.TariffSettingsScreen
+import com.example.ui.screens.TripHistoryScreen
+import com.example.ui.screens.TripSummaryScreen
+import com.example.ui.theme.GetTaxiMeterTheme
+import com.example.ui.theme.MeterBlackBg
+import com.example.viewmodel.MeterViewModel
+import com.example.viewmodel.Screen
+
+class MainActivity : ComponentActivity() {
+
+    private val viewModel: MeterViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        setContent {
+            GetTaxiMeterTheme {
+                MainContent(viewModel = viewModel, onMinimizeApp = { moveTaskToBack(true) })
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Check for any ongoing active trip or recovered trip on resume
+        viewModel.checkForUnfinishedTrip()
+    }
+}
+
+@Composable
+fun MainContent(
+    viewModel: MeterViewModel,
+    onMinimizeApp: () -> Unit
+) {
+    val currentScreen by viewModel.currentScreen.collectAsState()
+    val tripState by viewModel.tripState.collectAsState()
+
+    // Safe Back handling: Leaving Live Meter screen does NOT kill the trip!
+    BackHandler {
+        when (currentScreen) {
+            Screen.LIVE_METER -> {
+                if (tripState.status == TripStatus.ACTIVE || tripState.status == TripStatus.WAITING) {
+                    // Minimize app so trip continues safely in Foreground Service
+                    onMinimizeApp()
+                } else {
+                    viewModel.navigateTo(Screen.HOME)
+                }
+            }
+            Screen.SUMMARY, Screen.HISTORY, Screen.SETTINGS, Screen.BATTERY_GUIDANCE -> {
+                viewModel.navigateTo(Screen.HOME)
+            }
+            Screen.HOME -> {
+                onMinimizeApp()
+            }
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = com.example.ui.theme.AppWhiteBg,
+        contentWindowInsets = WindowInsets.safeDrawing
+    ) { innerPadding ->
+        when (currentScreen) {
+            Screen.HOME -> HomeScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.LIVE_METER -> LiveMeterScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.SUMMARY -> TripSummaryScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.HISTORY -> TripHistoryScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.SETTINGS -> TariffSettingsScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.BATTERY_GUIDANCE -> BatteryGuidanceScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+        }
+    }
+}

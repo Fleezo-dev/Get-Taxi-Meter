@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Taxi Roof Light Sign (Yellow with TAXI text) -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M46,14 L62,14 Q64,14 64,16 L65,20 Q65,21 63,21 L45,21 Q43,21 43,20 L44,16 Q44,14 46,14 Z" />
+    <path
+        android:fillColor="#111111"
+        android:pathData="M48,16 L52,16 L50,19 Z M53,16 L57,19 L55,16 Z M58,16 L61,19 Z" />
+
+    <!-- Taxi Car Front Silhouette (Black) -->
+    <path
+        android:fillColor="#111111"
+        android:pathData="M34,35 Q37,22 54,22 Q71,22 74,35 L78,41 Q82,42 82,46 L82,48 Q78,50 72,50 L36,50 Q30,50 26,48 L26,46 Q26,42 30,41 Z" />
+
+    <!-- Windshield (Glossy deep charcoal) -->
+    <path
+        android:fillColor="#262B36"
+        android:pathData="M37,34 Q39,25 54,25 Q69,25 71,34 L73,39 L35,39 Z" />
+
+    <!-- Left & Right Headlights (Crisp White Glow) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,44 Q36,44 40,46 Q36,48 32,46 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M76,44 Q72,44 68,46 Q72,48 76,46 Z" />
+
+    <!-- "Get" text silhouette / badge (Black) -->
+    <!-- "Get Taxi" row -->
+    <!-- "Get" in bold black -->
+    <path
+        android:fillColor="#111111"
+        android:pathData="M24,53 Q28,51 32,53 L32,56 Q28,54 26,56 Q24,58 24,62 Q24,66 28,66 Q30,66 32,64 L32,60 L28,60 L28,58 L34,58 L34,66 Q31,68 27,68 Q21,68 21,62 Q21,55 24,53 Z" />
+
+    <!-- "Taxi" in bright Red -->
+    <path
+        android:fillColor="#E51E25"
+        android:pathData="M46,54 L56,54 L56,56 L52,56 L52,68 L49,68 L49,56 L46,56 Z M57,59 L61,59 L63,68 L60,68 L59,64 L57,64 L56,68 L53,68 Z M64,59 L67,64 L64,68 L67,68 L69,65 L71,68 L74,68 L71,64 L74,59 L71,59 L69,62 L67,59 Z" />
+
+    <!-- Location Pin over 'i' in Taxi -->
+    <path
+        android:fillColor="#E51E25"
+        android:pathData="M78,51 Q76,51 76,53 Q76,56 78,58 Q80,56 80,53 Q80,51 78,51 Z M78,52.5 Q78.8,52.5 78.8,53.3 Q78.8,54 78,54 Q77.2,54 77.2,53.3 Q77.2,52.5 78,52.5 Z" />
+
+    <!-- "— METER —" Black pill badge with white text -->
+    <path
+        android:fillColor="#181A20"
+        android:pathData="M28,70 L80,70 Q85,70 85,75 Q85,80 80,80 L28,80 Q23,80 23,75 Q23,70 28,70 Z" />
+
+    <!-- Red Side Dashes on Meter Badge -->
+    <path
+        android:fillColor="#E51E25"
+        android:pathData="M18,74 L25,74 L25,76 L18,76 Z M83,74 L90,74 L90,76 L83,76 Z" />
+
+    <!-- METER White text letters inside badge -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M32,73 L34,73 L36,76 L38,73 L40,73 L40,78 L38.5,78 L38.5,75 L36.5,78 L35.5,78 L33.5,75 L33.5,78 L32,78 Z
+                          M43,73 L48,73 L48,74.2 L44.5,74.2 L44.5,75.2 L47.5,75.2 L47.5,76.4 L44.5,76.4 L44.5,76.8 L48,76.8 L48,78 L43,78 Z
+                          M51,73 L56,73 L56,74.2 L54.2,74.2 L54.2,78 L52.8,78 L52.8,74.2 L51,74.2 Z
+                          M58,73 L63,73 L63,74.2 L59.5,74.2 L59.5,75.2 L62.5,75.2 L62.5,76.4 L59.5,76.4 L59.5,76.8 L63,76.8 L63,78 L58,78 Z
+                          M65,73 L69,73 Q71,73 71,75 Q71,76.2 70,76.6 L71.5,78 L69.8,78 L68.5,76.6 L66.5,76.6 L66.5,78 L65,78 Z M66.5,74.2 L66.5,75.5 L68.8,75.5 Q69.5,75.5 69.5,74.8 Q69.5,74.2 68.8,74.2 Z" />
+
+    <!-- White Slogan on Red bottom curve: "DRIVE • TRACK • EARN" -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M26,89 L29,89 Q31,89 31,91 Q31,93 29,93 L26,93 Z M27.2,90 L27.2,92 L28.8,92 Q29.8,92 29.8,91 Q29.8,90 28.8,90 Z
+                          M33,89 L35,89 Q36.5,89 36.5,90.2 Q36.5,91 35.8,91.3 L36.8,93 L35.5,93 L34.6,91.5 L34.2,91.5 L34.2,93 L33,93 Z M34.2,89.8 L34.2,90.7 L35,90.7 Q35.5,90.7 35.5,90.2 Q35.5,89.8 35,89.8 Z
+                          M38,89 L39.2,89 L39.2,93 L38,93 Z
+                          M40.5,89 L41.8,89 L42.8,91.8 L43.8,89 L45.1,89 L43.5,93 L42.1,93 Z
+                          M46.5,89 L50,89 L50,89.8 L47.8,89.8 L47.8,90.5 L49.6,90.5 L49.6,91.3 L47.8,91.3 L47.8,92.2 L50,92.2 L50,93 L46.5,93 Z
+                          M52.5,91 Q52.5,90.6 53,90.6 Q53.5,90.6 53.5,91 Q53.5,91.4 53,91.4 Q52.5,91.4 52.5,91 Z
+                          M56,89 L60,89 L60,89.8 L58.6,89.8 L58.6,93 L57.4,93 L57.4,89.8 L56,89.8 Z
+                          M61,89 L63,89 Q64.5,89 64.5,90.2 Q64.5,91 63.8,91.3 L64.8,93 L63.5,93 L62.6,91.5 L62.2,91.5 L62.2,93 L61,93 Z
+                          M65.5,89 L67,89 L68.5,93 L67.2,93 L66.9,92.2 L66,92.2 L65.7,93 L64.5,93 Z
+                          M69,89.5 Q70,89 71.5,89.5 L71.2,90.3 Q70.2,90 69.8,90.5 Q69.5,91 69.5,91.5 Q69.5,92 69.8,92.5 Q70.2,93 71.2,92.7 L71.5,93.5 Q70,94 69,93.5 Q68,92.8 68,91.5 Q68,90.2 69,89.5 Z
+                          M73,89 L74.2,89 L74.2,90.6 L76,89 L77.5,89 L75.3,90.8 L77.5,93 L76,93 L74.2,91.2 L74.2,93 L73,93 Z" />
+
+</vector>
