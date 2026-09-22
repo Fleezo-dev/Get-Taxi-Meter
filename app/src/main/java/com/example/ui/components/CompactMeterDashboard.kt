@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,6 +86,7 @@ import java.util.Locale
  * 7. Quick Actions Row (Trip History, Tariff Settings, Today's Summary, More)
  * 8. Bottom Branding Footer (Curved Get Taxi — METER banner)
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CompactMeterDashboard(
     isTripActive: Boolean,
