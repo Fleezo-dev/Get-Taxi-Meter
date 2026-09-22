@@ -441,7 +441,8 @@ class TaxiMeterService : Service() {
             distanceMeters = currentVal.totalDistanceMeters,
             waitingDurationSeconds = currentVal.waitingDurationSeconds,
             extras = updatedExtras,
-            tariff = currentVal.tariff
+            tariff = currentVal.tariff,
+            tripDurationSeconds = currentVal.tripDurationSeconds
         )
         val updatedState = currentVal.copy(
             extras = updatedExtras,
@@ -478,7 +479,8 @@ class TaxiMeterService : Service() {
             distanceMeters = currentVal.totalDistanceMeters,
             waitingDurationSeconds = currentVal.waitingDurationSeconds,
             extras = currentVal.extras,
-            tariff = currentVal.tariff
+            tariff = currentVal.tariff,
+            tripDurationSeconds = currentVal.tripDurationSeconds
         )
 
         val completedState = currentVal.copy(
