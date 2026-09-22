@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Flight
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LocalParking
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -40,6 +41,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -109,6 +112,8 @@ fun CompactMeterDashboard(
     onTariffSettingsClick: () -> Unit,
     onTodaySummaryClick: () -> Unit,
     onMoreClick: () -> Unit,
+    isOverlayEnabled: Boolean = false,
+    onToggleOverlay: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -487,21 +492,21 @@ fun CompactMeterDashboard(
                     ExtraChargeButtonCompact(
                         icon = Icons.Default.Toll,
                         title = "Toll",
-                        amount = "+ ₹50",
+                        amount = "Add",
                         onClick = onAddToll,
                         modifier = Modifier.weight(1f)
                     )
                     ExtraChargeButtonCompact(
                         icon = Icons.Default.LocalParking,
                         title = "Parking",
-                        amount = "+ ₹30",
+                        amount = "Add",
                         onClick = onAddParking,
                         modifier = Modifier.weight(1f)
                     )
                     ExtraChargeButtonCompact(
                         icon = Icons.Default.Flight,
                         title = "Airport",
-                        amount = "+ ₹100",
+                        amount = "Add",
                         onClick = onAddAirport,
                         modifier = Modifier.weight(1f)
                     )
@@ -512,6 +517,58 @@ fun CompactMeterDashboard(
                         isAccent = true,
                         onClick = onAddCustom,
                         modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        }
+
+        // 5.5 OVERLAY CONTROL STRIP
+        if (onToggleOverlay != null) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, AppCardBorder, RoundedCornerShape(10.dp)),
+                colors = CardDefaults.cardColors(containerColor = AppCardSecondary),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 5.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Layers,
+                            contentDescription = "Overlay",
+                            tint = if (isOverlayEnabled) BrandRed else TextSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text(
+                                text = "Floating Meter Overlay",
+                                fontSize = 11.5.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Black
+                            )
+                            Text(
+                                text = "Show live fare widget over other apps",
+                                fontSize = 9.5.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                    Switch(
+                        checked = isOverlayEnabled,
+                        onCheckedChange = { onToggleOverlay(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = BrandRed,
+                            uncheckedThumbColor = Color.White,
+                            uncheckedTrackColor = Color(0xFFCBD5E1)
+                        )
                     )
                 }
             }

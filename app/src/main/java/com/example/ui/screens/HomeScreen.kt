@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -13,6 +14,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,20 +28,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,15 +60,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.example.R
 import com.example.model.TripStatus
+import com.example.service.FloatingOverlayManager
 import com.example.service.TaxiMeterService
 import com.example.ui.components.CompactMeterDashboard
+import com.example.ui.components.ManualExtraChargeDialog
+import com.example.ui.theme.AppCardBorder
 import com.example.ui.theme.BrandRed
 import com.example.ui.theme.TextSecondary
 import com.example.viewmodel.MeterViewModel
@@ -73,6 +89,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     val recoveredTrip by viewModel.recoveredTrip.collectAsState()
     val todayTrips by viewModel.todayCompletedTrips.collectAsState()
     val currentTariff by viewModel.currentTariff.collectAsState()
@@ -81,6 +99,24 @@ fun HomeScreen(
     var showTodaySummaryDialog by remember { mutableStateOf(false) }
     var showMoreMenuDialog by remember { mutableStateOf(false) }
     var showRecoveredTripDialog by remember { mutableStateOf(recoveredTrip != null) }
+
+    // Manual Extra Charges Dialog States
+    var showAirportDialog by remember { mutableStateOf(false) }
+    var showTollDialog by remember { mutableStateOf(false) }
+    var showParkingDialog by remember { mutableStateOf(false) }
+
+    // Overlay State & Lifecycle synchronization
+    var isOverlayActive by remember { mutableStateOf(FloatingOverlayManager.isOverlayEnabled(context)) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isOverlayActive = FloatingOverlayManager.isOverlayEnabled(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val todayEarnings = todayTrips.sumOf { it.currentFare }
     val todayDistanceKm = todayTrips.sumOf { it.totalDistanceMeters } / 1000.0
@@ -163,13 +199,13 @@ fun HomeScreen(
         dateText = currentDate,
         timeText = currentTime,
         onAddToll = {
-            if (isTripActive) viewModel.addExtra(context, "Toll", 50.0) else onStartTripClick()
+            if (isTripActive) showTollDialog = true else onStartTripClick()
         },
         onAddParking = {
-            if (isTripActive) viewModel.addExtra(context, "Parking", 30.0) else onStartTripClick()
+            if (isTripActive) showParkingDialog = true else onStartTripClick()
         },
         onAddAirport = {
-            if (isTripActive) viewModel.addExtra(context, "Airport", 100.0) else onStartTripClick()
+            if (isTripActive) showAirportDialog = true else onStartTripClick()
         },
         onAddCustom = {
             if (isTripActive) viewModel.navigateTo(Screen.LIVE_METER) else onStartTripClick()
@@ -181,8 +217,59 @@ fun HomeScreen(
         onTariffSettingsClick = { viewModel.navigateTo(Screen.SETTINGS) },
         onTodaySummaryClick = { showTodaySummaryDialog = true },
         onMoreClick = { showMoreMenuDialog = true },
+        isOverlayEnabled = isOverlayActive,
+        onToggleOverlay = { enabled ->
+            if (enabled) {
+                if (!FloatingOverlayManager.canDrawOverlay(context)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        val intent = Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:${context.packageName}")
+                        )
+                        context.startActivity(intent)
+                    }
+                } else {
+                    FloatingOverlayManager.setOverlayEnabled(context, true)
+                    isOverlayActive = true
+                }
+            } else {
+                FloatingOverlayManager.setOverlayEnabled(context, false)
+                isOverlayActive = false
+            }
+        },
         modifier = modifier
     )
+
+    // MANUAL CHARGES DIALOGS
+    if (showAirportDialog) {
+        ManualExtraChargeDialog(
+            title = "Airport Charges",
+            onDismiss = { showAirportDialog = false },
+            onAdd = { amount ->
+                viewModel.addExtra(context, "Airport", amount)
+            }
+        )
+    }
+
+    if (showTollDialog) {
+        ManualExtraChargeDialog(
+            title = "Toll Charges",
+            onDismiss = { showTollDialog = false },
+            onAdd = { amount ->
+                viewModel.addExtra(context, "Toll", amount)
+            }
+        )
+    }
+
+    if (showParkingDialog) {
+        ManualExtraChargeDialog(
+            title = "Parking Charges",
+            onDismiss = { showParkingDialog = false },
+            onAdd = { amount ->
+                viewModel.addExtra(context, "Parking", amount)
+            }
+        )
+    }
 
     // RECOVERED UNFINISHED TRIP DIALOG
     if (recoveredTrip != null && showRecoveredTripDialog) {
@@ -318,8 +405,101 @@ fun HomeScreen(
                 }
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    // 1. Trip History & Receipts
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    // 1. Driver Profile
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.DRIVER_PROFILE)
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(BrandRed.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Person, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Driver Profile & Vehicle", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Driver name, phone & vehicle number", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 2. Setup Checklist
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.SETUP_CHECKLIST)
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF16A34A).copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF16A34A), modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Setup Checklist", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Verify GPS, overlay & permissions", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 3. Device Activation
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.ACTIVATION)
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(BrandRed.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.VpnKey, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Device Activation", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Enter administrator activation code", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 4. Trip History & Receipts
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -349,7 +529,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // 2. Tariff & Meter Settings
+                    // 5. Tariff & Meter Settings
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -379,7 +559,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // 3. Today's Summary
+                    // 6. Today's Summary
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -409,7 +589,7 @@ fun HomeScreen(
                         }
                     }
 
-                    // 4. Battery & Background Settings
+                    // 7. Battery & Background Settings
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -439,7 +619,37 @@ fun HomeScreen(
                         }
                     }
 
-                    // 5. Share App
+                    // 8. Admin Panel (Protected by PIN 1981)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.ADMIN)
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E293B).copy(alpha = 0.10f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.AdminPanelSettings, contentDescription = null, tint = Color(0xFF1E293B), modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Admin Panel", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("PIN protected admin controls & code generator", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 9. Share App
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

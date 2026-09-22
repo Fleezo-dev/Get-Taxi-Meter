@@ -17,9 +17,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.example.model.TripStatus
+import com.example.ui.screens.ActivationScreen
+import com.example.ui.screens.AdminScreen
 import com.example.ui.screens.BatteryGuidanceScreen
+import com.example.ui.screens.DriverProfileScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.LiveMeterScreen
+import com.example.ui.screens.SetupChecklistScreen
 import com.example.ui.screens.TariffSettingsScreen
 import com.example.ui.screens.TripHistoryScreen
 import com.example.ui.screens.TripSummaryScreen
@@ -69,7 +73,8 @@ fun MainContent(
                     viewModel.navigateTo(Screen.HOME)
                 }
             }
-            Screen.SUMMARY, Screen.HISTORY, Screen.SETTINGS, Screen.BATTERY_GUIDANCE -> {
+            Screen.SUMMARY, Screen.HISTORY, Screen.SETTINGS, Screen.BATTERY_GUIDANCE,
+            Screen.SETUP_CHECKLIST, Screen.DRIVER_PROFILE, Screen.ACTIVATION, Screen.ADMIN -> {
                 viewModel.navigateTo(Screen.HOME)
             }
             Screen.HOME -> {
@@ -105,6 +110,22 @@ fun MainContent(
                 modifier = Modifier.padding(innerPadding)
             )
             Screen.BATTERY_GUIDANCE -> BatteryGuidanceScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.DRIVER_PROFILE -> DriverProfileScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.SETUP_CHECKLIST -> SetupChecklistScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.ACTIVATION -> ActivationScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
+            Screen.ADMIN -> AdminScreen(
                 viewModel = viewModel,
                 modifier = Modifier.padding(innerPadding)
             )

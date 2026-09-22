@@ -15,11 +15,19 @@ class TaxiMeterApplication : Application() {
     lateinit var tariffRepository: TariffRepository
         private set
 
+    lateinit var driverProfileRepository: com.example.data.DriverProfileRepository
+        private set
+
+    lateinit var activationRepository: com.example.data.ActivationRepository
+        private set
+
     override fun onCreate() {
         super.onCreate()
         instance = this
         database = AppDatabase.getInstance(this)
         tariffRepository = TariffRepository(this)
+        driverProfileRepository = com.example.data.DriverProfileRepository(this)
+        activationRepository = com.example.data.ActivationRepository(this)
         createNotificationChannel()
     }
 

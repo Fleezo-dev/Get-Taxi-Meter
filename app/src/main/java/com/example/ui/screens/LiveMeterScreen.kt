@@ -2,6 +2,9 @@ package com.example.ui.screens
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,14 +19,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AdminPanelSettings
 import androidx.compose.material.icons.filled.BatteryChargingFull
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,6 +42,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,13 +53,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.example.service.FloatingOverlayManager
 import com.example.service.TaxiMeterService
 import com.example.ui.components.CompactMeterDashboard
+import com.example.ui.components.ManualExtraChargeDialog
 import com.example.ui.theme.AppCardBorder
 import com.example.ui.theme.AppCardSecondary
 import com.example.ui.theme.AppWhiteBg
@@ -67,6 +82,8 @@ fun LiveMeterScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+
     val tripState by viewModel.tripState.collectAsState()
     val todayTrips by viewModel.todayCompletedTrips.collectAsState()
 
@@ -74,6 +91,24 @@ fun LiveMeterScreen(
     var showAddExtraDialog by remember { mutableStateOf(false) }
     var showTodaySummaryDialog by remember { mutableStateOf(false) }
     var showMoreMenuDialog by remember { mutableStateOf(false) }
+
+    // Manual Extra Charges Dialog States
+    var showAirportDialog by remember { mutableStateOf(false) }
+    var showTollDialog by remember { mutableStateOf(false) }
+    var showParkingDialog by remember { mutableStateOf(false) }
+
+    // Overlay State & Lifecycle synchronization
+    var isOverlayActive by remember { mutableStateOf(FloatingOverlayManager.isOverlayEnabled(context)) }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                isOverlayActive = FloatingOverlayManager.isOverlayEnabled(context)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     // Dynamic current Date & Time
     val currentDate = SimpleDateFormat("MMM dd, yyyy", Locale.US).format(Date())
@@ -102,9 +137,9 @@ fun LiveMeterScreen(
         totalExtras = tripState.breakdown.extraChargesTotal,
         dateText = currentDate,
         timeText = currentTime,
-        onAddToll = { viewModel.addExtra(context, "Toll", 50.0) },
-        onAddParking = { viewModel.addExtra(context, "Parking", 30.0) },
-        onAddAirport = { viewModel.addExtra(context, "Airport", 100.0) },
+        onAddToll = { showTollDialog = true },
+        onAddParking = { showParkingDialog = true },
+        onAddAirport = { showAirportDialog = true },
         onAddCustom = { showAddExtraDialog = true },
         onMenuClick = { showMoreMenuDialog = true },
         onSettingsClick = { viewModel.navigateTo(Screen.SETTINGS) },
@@ -113,8 +148,59 @@ fun LiveMeterScreen(
         onTariffSettingsClick = { viewModel.navigateTo(Screen.SETTINGS) },
         onTodaySummaryClick = { showTodaySummaryDialog = true },
         onMoreClick = { showMoreMenuDialog = true },
+        isOverlayEnabled = isOverlayActive,
+        onToggleOverlay = { enabled ->
+            if (enabled) {
+                if (!FloatingOverlayManager.canDrawOverlay(context)) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        val intent = Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:${context.packageName}")
+                        )
+                        context.startActivity(intent)
+                    }
+                } else {
+                    FloatingOverlayManager.setOverlayEnabled(context, true)
+                    isOverlayActive = true
+                }
+            } else {
+                FloatingOverlayManager.setOverlayEnabled(context, false)
+                isOverlayActive = false
+            }
+        },
         modifier = modifier
     )
+
+    // MANUAL CHARGES DIALOGS (Airport, Toll, Parking)
+    if (showAirportDialog) {
+        ManualExtraChargeDialog(
+            title = "Airport Charges",
+            onDismiss = { showAirportDialog = false },
+            onAdd = { amount ->
+                viewModel.addExtra(context, "Airport", amount)
+            }
+        )
+    }
+
+    if (showTollDialog) {
+        ManualExtraChargeDialog(
+            title = "Toll Charges",
+            onDismiss = { showTollDialog = false },
+            onAdd = { amount ->
+                viewModel.addExtra(context, "Toll", amount)
+            }
+        )
+    }
+
+    if (showParkingDialog) {
+        ManualExtraChargeDialog(
+            title = "Parking Charges",
+            onDismiss = { showParkingDialog = false },
+            onAdd = { amount ->
+                viewModel.addExtra(context, "Parking", amount)
+            }
+        )
+    }
 
     // CONFIRMATION DIALOG BEFORE ENDING TRIP
     if (showEndTripConfirmation) {
@@ -327,7 +413,78 @@ fun LiveMeterScreen(
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Driver Profile
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.DRIVER_PROFILE)
+                            }
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Person, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Driver Profile", color = Color.Black, fontSize = 13.5.sp, fontWeight = FontWeight.Medium)
+                    }
+
+                    // Setup Checklist
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.SETUP_CHECKLIST)
+                            }
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF16A34A), modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Setup Checklist", color = Color.Black, fontSize = 13.5.sp, fontWeight = FontWeight.Medium)
+                    }
+
+                    // Device Activation
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.ACTIVATION)
+                            }
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.VpnKey, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Device Activation", color = Color.Black, fontSize = 13.5.sp, fontWeight = FontWeight.Medium)
+                    }
+
+                    // Admin Panel
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.ADMIN)
+                            }
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.AdminPanelSettings, contentDescription = null, tint = Color(0xFF1E293B), modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text("Admin Panel", color = Color.Black, fontSize = 13.5.sp, fontWeight = FontWeight.Medium)
+                    }
+
                     // Battery Guidance Option
                     Row(
                         modifier = Modifier

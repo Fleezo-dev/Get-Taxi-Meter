@@ -193,6 +193,10 @@ class TaxiMeterService : Service() {
         } else 0
 
         ServiceCompat.startForeground(this, TaxiMeterApplication.NOTIFICATION_ID, notification, foregroundServiceType)
+
+        if (FloatingOverlayManager.isOverlayEnabled(this) && FloatingOverlayManager.canDrawOverlay(this)) {
+            FloatingOverlayManager.showOverlay(this)
+        }
     }
 
     private fun buildNotification(state: TripState): Notification {
@@ -462,12 +466,14 @@ class TaxiMeterService : Service() {
         }
 
         releaseWakeLock()
+        FloatingOverlayManager.hideOverlay(this)
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         _isServiceRunning.value = false
         stopSelf()
     }
 
     override fun onDestroy() {
+        FloatingOverlayManager.hideOverlay(this)
         tickerJob?.cancel()
         serviceScope.cancel()
         locationCallback?.let { fusedLocationClient.removeLocationUpdates(it) }

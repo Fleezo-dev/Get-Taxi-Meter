@@ -5,6 +5,12 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.TaxiMeterApplication
+import com.example.data.ActivationRepository
+import com.example.data.ActivationResult
+import com.example.data.DeviceActivationRecord
+import com.example.data.DeviceIdManager
+import com.example.data.DriverProfile
+import com.example.data.DriverProfileRepository
 import com.example.data.TripEntity
 import com.example.model.Tariff
 import com.example.model.TripState
@@ -25,19 +31,33 @@ enum class Screen {
     SUMMARY,
     HISTORY,
     SETTINGS,
-    BATTERY_GUIDANCE
+    BATTERY_GUIDANCE,
+    SETUP_CHECKLIST,
+    DRIVER_PROFILE,
+    ACTIVATION,
+    ADMIN
 }
 
 class MeterViewModel(application: Application) : AndroidViewModel(application) {
 
     private val db = TaxiMeterApplication.instance.database
     private val tariffRepo = TaxiMeterApplication.instance.tariffRepository
+    private val driverRepo = TaxiMeterApplication.instance.driverProfileRepository
+    private val activationRepo = TaxiMeterApplication.instance.activationRepository
 
     val tripState: StateFlow<TripState> = TaxiMeterService.tripState
     val isServiceRunning: StateFlow<Boolean> = TaxiMeterService.isServiceRunning
     val currentTariff: StateFlow<Tariff> = tariffRepo.currentTariff
 
-    private val _currentScreen = MutableStateFlow(Screen.HOME)
+    val driverProfile: StateFlow<DriverProfile> = driverRepo.profile
+    val isActivated: StateFlow<Boolean> = activationRepo.isActivated
+    val activationStatus: StateFlow<String> = activationRepo.activationStatus
+
+    private val _currentScreen = MutableStateFlow(
+        if (!driverRepo.profile.value.isRegistered) Screen.DRIVER_PROFILE
+        else if (!activationRepo.isActivated.value) Screen.SETUP_CHECKLIST
+        else Screen.HOME
+    )
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
 
     private val _recoveredTrip = MutableStateFlow<TripEntity?>(null)
@@ -132,5 +152,46 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
 
     fun saveTariff(tariff: Tariff) {
         tariffRepo.saveTariff(tariff)
+    }
+
+    fun saveDriverProfile(
+        name: String,
+        mobileNumber: String,
+        vehicleNumber: String,
+        vehicleType: String,
+        photoPath: String?
+    ): Boolean {
+        val success = driverRepo.saveProfile(name, mobileNumber, vehicleNumber, vehicleType, photoPath)
+        if (success) {
+            if (!isActivated.value) {
+                _currentScreen.value = Screen.SETUP_CHECKLIST
+            } else {
+                _currentScreen.value = Screen.HOME
+            }
+        }
+        return success
+    }
+
+    fun saveProfilePhoto(uri: android.net.Uri): String? {
+        return driverRepo.saveImageToInternalStorage(uri)
+    }
+
+    suspend fun activateDevice(activationCode: String): ActivationResult {
+        val context = getApplication<Application>()
+        val deviceId = DeviceIdManager.getDeviceId(context)
+        val profile = driverProfile.value
+        val result = activationRepo.activateDevice(deviceId, activationCode, profile)
+        if (result is ActivationResult.Success) {
+            _currentScreen.value = Screen.HOME
+        }
+        return result
+    }
+
+    suspend fun generateAdminActivationCode(deviceId: String): Pair<String, String?> {
+        return activationRepo.generateActivationCodeForDevice(deviceId)
+    }
+
+    fun getDeviceRecord(deviceId: String): DeviceActivationRecord? {
+        return activationRepo.getDeviceRecordLocally(deviceId)
     }
 }
