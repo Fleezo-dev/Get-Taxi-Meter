@@ -77,8 +77,12 @@ fun MainContent(
                     viewModel.navigateTo(Screen.HOME)
                 }
             }
+            Screen.ACTIVATION -> {
+                if (viewModel.isActivated.value) viewModel.navigateTo(Screen.HOME)
+                else Toast.makeText(context, "Activation is required to use the meter", Toast.LENGTH_SHORT).show()
+            }
             Screen.SUMMARY, Screen.HISTORY, Screen.SETTINGS, Screen.BATTERY_GUIDANCE,
-            Screen.SETUP_CHECKLIST, Screen.DRIVER_PROFILE, Screen.ACTIVATION, Screen.ADMIN -> {
+            Screen.SETUP_CHECKLIST, Screen.DRIVER_PROFILE, Screen.ADMIN -> {
                 viewModel.navigateTo(Screen.HOME)
             }
             Screen.HOME -> {
