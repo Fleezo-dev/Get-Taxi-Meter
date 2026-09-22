@@ -120,66 +120,49 @@ const htmlContent = `<!DOCTYPE html>
     }
     .share-pill:hover { background: #E5E7EB; }
 
-    /* Center Artwork */
+    /* Center Brand Header: EXACT ORIGINAL UPLOADED GET TAXI METER LOGO */
     .brand-hero-center {
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-top: -12px;
+      justify-content: center;
+      margin-top: -2px;
+      margin-bottom: 2px;
       flex-shrink: 0;
     }
-    .taxi-car-svg {
-      width: 175px;
-      height: 70px;
+    .brand-original-logo-img {
+      width: 90px;
+      height: 90px;
+      max-width: 90px;
+      max-height: 90px;
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
       display: block;
+      margin: 0 auto;
+      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.08));
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .brand-title-row {
-      display: flex;
-      align-items: center;
-      line-height: 1;
-      margin-top: 2px;
+    .brand-original-logo-img:hover {
+      transform: scale(1.02);
     }
-    .brand-get {
-      font-size: 26px;
-      font-weight: 900;
-      color: #000000;
-      letter-spacing: -0.6px;
-    }
-    .brand-taxi {
-      font-size: 26px;
-      font-weight: 900;
-      color: var(--brand-red);
-      letter-spacing: -0.6px;
-    }
-    .meter-badge-pill {
-      background: #0F172A;
-      border: 1.5px solid var(--brand-red);
-      color: #FFFFFF;
-      font-size: 9px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      padding: 2.5px 14px;
-      border-radius: 999px;
+    .brand-slogan-pill {
       margin-top: 4px;
-    }
-    .tagline-capsule {
-      background: #FFFFFF;
-      border: 1px solid #FCA5A5;
-      border-radius: 999px;
-      padding: 3px 18px;
-      font-size: 11px;
-      font-weight: 700;
-      color: #374151;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
-      margin-top: 6px;
-      box-shadow: 0 1px 3px rgba(229,30,37,0.06);
+      gap: 6px;
+      background: #FFFFFF;
+      border: 1px solid rgba(229, 30, 37, 0.35);
+      border-radius: 999px;
+      padding: 2px 12px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #1E293B;
+      letter-spacing: 0.3px;
     }
-    .tagline-dot {
+    .brand-slogan-pill .dot {
       color: var(--brand-red);
-      font-size: 13px;
       font-weight: 900;
+      font-size: 11px;
     }
 
     /* Main Dashboard Body: Fills available space with comfortable padding & breathing room */
@@ -584,54 +567,85 @@ const htmlContent = `<!DOCTYPE html>
         </div>
       </div>
 
-      <!-- Centered Vector Taxi + Brand Name -->
+      <!-- Centered EXACT ORIGINAL UPLOADED GET TAXI METER LOGO -->
       <div class="brand-hero-center">
-        <svg class="taxi-car-svg" viewBox="0 0 200 80">
-          <!-- Yellow TAXI roof sign -->
-          <path d="M 86 4 L 114 4 L 117 18 L 83 18 Z" fill="#FFC107" stroke="#000" stroke-width="1.2" stroke-linejoin="round"/>
-          <rect x="81" y="17" width="38" height="3" fill="#000" rx="1"/>
-          <text x="100" y="14" font-family="'Plus Jakarta Sans', sans-serif" font-weight="900" font-size="8" fill="#000" text-anchor="middle" letter-spacing="0.8">TAXI</text>
-          
-          <!-- Left & Right Red Speed Swooshes -->
-          <path d="M 60 18 C 34 24 14 44 20 72 C 24 78 31 75 30 68 C 26 48 32 34 64 24 Z" fill="#E51E25" />
-          <path d="M 140 18 C 166 24 186 44 180 72 C 176 78 169 75 170 68 C 174 48 168 34 136 24 Z" fill="#E51E25" />
-          
-          <!-- Shadow base -->
-          <ellipse cx="100" cy="74" rx="60" ry="5" fill="rgba(0,0,0,0.12)"/>
-          
-          <!-- Cabin Roof & Windshield -->
-          <path d="M 68 22 C 84 16 116 16 132 22 L 146 45 C 120 43 80 43 54 45 Z" fill="#0F172A"/>
-          <path d="M 72 24 C 86 20 114 20 128 24 L 140 43 C 118 41 82 41 60 43 Z" fill="#1E293B"/>
-          <!-- Silhouettes -->
-          <circle cx="88" cy="33" r="4.2" fill="#0F172A"/>
-          <circle cx="112" cy="33" r="4.2" fill="#0F172A"/>
-          
-          <!-- Hood & Body -->
-          <path d="M 52 44 C 76 41 124 41 148 44 C 158 54 156 70 152 74 C 148 78 135 80 100 80 C 65 80 52 78 48 74 C 44 70 42 54 52 44 Z" fill="#0F172A"/>
-          
-          <!-- Headlights -->
-          <ellipse cx="58" cy="58" rx="8" ry="5.5" fill="#FFFFFF" transform="rotate(-15 58 58)"/>
-          <ellipse cx="58" cy="58" rx="5" ry="3.5" fill="#E2E8F0" transform="rotate(-15 58 58)"/>
-          <ellipse cx="142" cy="58" rx="8" ry="5.5" fill="#FFFFFF" transform="rotate(15 142 58)"/>
-          <ellipse cx="142" cy="58" rx="5" ry="3.5" fill="#E2E8F0" transform="rotate(15 142 58)"/>
-          
-          <!-- Grille -->
-          <rect x="78" y="63" width="44" height="11" rx="2" fill="#1E293B"/>
-          <line x1="82" y1="67" x2="118" y2="67" stroke="#475569" stroke-width="1.2"/>
-          <line x1="84" y1="71" x2="116" y2="71" stroke="#475569" stroke-width="1.2"/>
-        </svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" class="brand-original-logo-img">
+          <defs>
+            <style>
+              @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&amp;display=swap');
+              .logo-text-get { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 195px; fill: #0A0A0A; }
+              .logo-text-taxi { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 195px; fill: #ED1C24; }
+              .logo-text-meter { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 68px; fill: #FFFFFF; letter-spacing: 16px; }
+              .logo-text-banner { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 36px; fill: #FFFFFF; letter-spacing: 6px; }
+            </style>
+            <filter id="badgeShadow" x="-10%" y="-10%" width="125%" height="125%">
+              <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.18" />
+            </filter>
+            <clipPath id="squircleClip">
+              <rect x="25" y="25" width="950" height="950" rx="210" ry="210" />
+            </clipPath>
+            <linearGradient id="redBannerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#ED1C24" />
+              <stop offset="60%" stop-color="#D9141D" />
+              <stop offset="100%" stop-color="#BA0C14" />
+            </linearGradient>
+            <linearGradient id="swooshGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#ED1C24" />
+              <stop offset="100%" stop-color="#EA1A22" />
+            </linearGradient>
+          </defs>
+          <rect x="25" y="25" width="950" height="950" rx="210" ry="210" fill="#FFFFFF" stroke="#ED1C24" stroke-width="24" />
+          <g clip-path="url(#squircleClip)">
+            <path d="M 12 375 C 20 250, 115 150, 375 140 C 378 148, 380 156, 380 160 C 180 185, 75 285, 45 420 Z" fill="url(#swooshGrad)" />
+            <path d="M 105 325 C 160 235, 235 180, 365 152 L 362 165 C 230 195, 160 250, 112 334 Z" fill="#FFFFFF" />
+            <path d="M 15 725 Q 500 645 985 725 L 985 985 L 15 985 Z" fill="url(#redBannerGrad)" />
+            <path d="M 15 725 Q 500 645 985 725" fill="none" stroke="#FF6B72" stroke-width="3" opacity="0.6" />
+            <path d="M 15 915 Q 500 895 985 915 L 985 985 L 15 985 Z" fill="#9E0A10" opacity="0.4" />
+            <path d="M 390 154 L 610 154 L 602 165 L 398 165 Z" fill="#0A0A0A" />
+            <path d="M 412 96 L 588 96 Q 598 96 601 106 L 615 145 Q 617 154 606 154 L 394 154 Q 383 154 385 145 L 399 106 Q 402 96 412 96 Z" fill="#FFD100" stroke="#0A0A0A" stroke-width="9" stroke-linejoin="round" />
+            <g fill="#0A0A0A">
+              <path d="M 436 114 L 466 114 L 466 120 L 454 120 L 454 142 L 448 142 L 448 120 L 436 120 Z" />
+              <path d="M 470 142 L 480 114 L 488 114 L 498 142 L 491 142 L 488 134 L 480 134 L 477 142 Z M 481 128 L 487 128 L 484 119 Z" />
+              <path d="M 504 114 L 513 128 L 522 114 L 529 114 L 517 130 L 530 142 L 522 142 L 513 131 L 504 142 L 497 142 L 510 128 L 498 114 Z" />
+              <path d="M 536 114 L 544 114 L 544 142 L 536 142 Z" />
+            </g>
+            <path d="M 345 165 C 400 158, 600 158, 655 165 C 685 178, 715 220, 736 250 C 750 246, 785 244, 804 258 C 810 263, 808 274, 796 280 C 775 288, 746 285, 735 278 C 745 305, 775 320, 810 330 C 845 342, 855 365, 842 398 C 830 422, 800 435, 765 442 C 680 455, 320 455, 235 442 C 200 435, 170 422, 158 398 C 145 365, 155 342, 190 330 C 225 320, 255 305, 265 278 C 254 285, 225 288, 204 280 C 192 274, 190 263, 196 258 C 215 244, 250 246, 264 250 C 285 220, 315 178, 345 165 Z" fill="#0A0A0A" />
+            <path d="M 358 175 C 410 168, 590 168, 642 175 C 665 186, 692 225, 712 258 C 630 266, 370 266, 288 258 C 308 225, 335 186, 358 175 Z" fill="#1A1C21" />
+            <path d="M 382 216 Q 402 196 422 216 L 428 258 L 376 258 Z" fill="#0A0A0A" />
+            <path d="M 578 216 Q 598 196 618 216 L 624 258 L 572 258 Z" fill="#0A0A0A" />
+            <path d="M 400 270 L 415 345 Q 500 355 585 345 L 600 270" fill="none" stroke="#2B2F38" stroke-width="3" />
+            <path d="M 382 342 Q 500 352 618 342 L 610 376 Q 500 390 390 376 Z" fill="#16181D" />
+            <path d="M 390 382 Q 500 395 610 382 L 605 398 Q 500 412 395 398 Z" fill="#111317" />
+            <path d="M 235 345 C 265 340, 315 352, 342 376 C 315 372, 270 365, 240 352 Z" fill="#FFFFFF" />
+            <path d="M 250 365 C 275 363, 310 372, 332 388 C 305 385, 275 380, 255 372 Z" fill="#FFFFFF" />
+            <path d="M 338 368 L 358 384 L 348 388 L 330 373 Z" fill="#FFFFFF" />
+            <path d="M 765 345 C 735 340, 685 352, 658 376 C 685 372, 730 365, 760 352 Z" fill="#FFFFFF" />
+            <path d="M 750 365 C 725 363, 690 372, 668 388 C 695 385, 725 380, 745 372 Z" fill="#FFFFFF" />
+            <path d="M 662 368 L 642 384 L 652 388 L 670 373 Z" fill="#FFFFFF" />
+            
+            <!-- Clean Typography using Montserrat Google Font -->
+            <text x="95" y="585" class="logo-text-get">Get</text>
+            <text x="500" y="585" class="logo-text-taxi">Taxi</text>
 
-        <div class="brand-title-row">
-          <span class="brand-get">Get</span><span class="brand-taxi">Taxi</span>
-        </div>
-        <div class="meter-badge-pill">— M E T E R —</div>
-        <div class="tagline-capsule">
-          <span>Drive</span>
-          <span class="tagline-dot">•</span>
-          <span>Track</span>
-          <span class="tagline-dot">•</span>
-          <span>Earn</span>
-        </div>
+            <!-- Map Pin over Taxi 'i' -->
+            <g transform="translate(835, 360)">
+              <path d="M 43 0 C 21 0, 3 18, 3 40 C 3 68, 43 105, 43 105 C 43 105, 83 68, 83 40 C 83 18, 65 0, 43 0 Z" fill="#ED1C24" />
+              <circle cx="43" cy="40" r="16" fill="#FFFFFF" />
+            </g>
+
+            <!-- Black Pill Badge for METER -->
+            <g filter="url(#badgeShadow)">
+              <rect x="200" y="625" width="600" height="110" rx="55" ry="55" fill="#111318" />
+              <!-- Red accent lines beside METER -->
+              <rect x="120" y="672" width="65" height="16" rx="8" ry="8" fill="#ED1C24" />
+              <rect x="815" y="672" width="65" height="16" rx="8" ry="8" fill="#ED1C24" />
+              <text x="500" y="700" class="logo-text-meter" text-anchor="middle">METER</text>
+            </g>
+
+            <!-- Bottom Red Banner: DRIVE • TRACK • EARN -->
+            <text x="500" y="836" class="logo-text-banner" text-anchor="middle">DRIVE   •   TRACK   •   EARN</text>
+          </g>
+        </svg>
       </div>
     </div>
 
@@ -811,49 +825,9 @@ const htmlContent = `<!DOCTYPE html>
         </svg>
         <span id="mainBtnText">START TRIP</span>
       </button>
-
-      <!-- 6. Bottom 4 Quick Action Cards -->
-      <div class="quick-actions-row">
-        <div class="qa-card" onclick="openHistoryModal()">
-          <svg class="qa-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-            <line x1="8" y1="6" x2="21" y2="6"></line>
-            <line x1="8" y1="12" x2="21" y2="12"></line>
-            <line x1="8" y1="18" x2="21" y2="18"></line>
-            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-          </svg>
-          <span class="qa-title">Trip History</span>
-        </div>
-
-        <div class="qa-card" onclick="openSettingsModal()">
-          <svg class="qa-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-          </svg>
-          <span class="qa-title">Tariff Settings</span>
-        </div>
-
-        <div class="qa-card" onclick="openTodayModal()">
-          <svg class="qa-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="4" y="10" width="3.5" height="11" rx="1"/>
-            <rect x="10.25" y="4" width="3.5" height="17" rx="1"/>
-            <rect x="16.5" y="14" width="3.5" height="7" rx="1"/>
-          </svg>
-          <span class="qa-title">Today's Summary</span>
-        </div>
-
-        <div class="qa-card" onclick="openMoreModal()">
-          <svg class="qa-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="5" cy="12" r="2.2"></circle>
-            <circle cx="12" cy="12" r="2.2"></circle>
-            <circle cx="19" cy="12" r="2.2"></circle>
-          </svg>
-          <span class="qa-title">More</span>
-        </div>
-      </div>
     </div>
 
-    <!-- 7. Curved Brand Footer -->
+    <!-- 6. Curved Brand Footer -->
     <div class="curved-footer-wrap">
       <svg class="curved-svg" viewBox="0 0 400 16" preserveAspectRatio="none">
         <path d="M0,16 Q200,-2 400,16 Z" fill="#E51E25" />
@@ -979,9 +953,13 @@ const htmlContent = `<!DOCTYPE html>
           <div><strong>Tariff & Meter Settings</strong><div style="font-size: 10px; color: #9CA3AF;">Adjust base fare, per km, waiting charges</div></div>
           <span>›</span>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0;" onclick="window.open('/app-debug.apk')">
-          <div><strong>Download Android APK</strong><div style="font-size: 10px; color: #9CA3AF;">Native Kotlin APK with Foreground Service</div></div>
-          <span>⬇</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0;" onclick="closeMoreModal(); openTodayModal();">
+          <div><strong>Today's Summary</strong><div style="font-size: 10px; color: #9CA3AF;">Shift earnings, distance and completed trips</div></div>
+          <span>›</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 4px 0;" onclick="closeMoreModal(); shareApp();">
+          <div><strong>Share Get Taxi Meter</strong><div style="font-size: 10px; color: #9CA3AF;">Share app with fellow drivers & fleets</div></div>
+          <span>›</span>
         </div>
       </div>
       <div class="modal-btns">
@@ -1285,7 +1263,7 @@ const server = http.createServer((req, res) => {
   const pathname = parsedUrl.pathname;
 
   // Handle native Android APK download
-  if (pathname === '/app-debug.apk' || pathname === '/download/apk') {
+  if (pathname === '/app-debug.apk' || pathname === '/download/apk' || pathname === '/download-apk') {
     if (fs.existsSync(APK_PATH)) {
       const stat = fs.statSync(APK_PATH);
       res.writeHead(200, {
@@ -1314,6 +1292,20 @@ const server = http.createServer((req, res) => {
       apkPath: APK_PATH
     }));
     return;
+  }
+
+  // Brand icon / logo SVG assets
+  if (pathname.endsWith('.svg')) {
+    const fileName = path.basename(pathname);
+    const iconPath = path.join(__dirname, 'public', fileName);
+    if (fs.existsSync(iconPath)) {
+      res.writeHead(200, {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'public, max-age=86400'
+      });
+      fs.createReadStream(iconPath).pipe(res);
+      return;
+    }
   }
 
   // Default: Serve the interactive Get Taxi Meter application

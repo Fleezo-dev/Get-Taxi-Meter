@@ -1,6 +1,7 @@
 package com.example.ui.components
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -35,10 +36,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.ui.theme.AppCardBorder
 import com.example.ui.theme.AppCardSecondary
 import com.example.ui.theme.AppWhiteBg
@@ -54,234 +58,43 @@ import com.example.ui.theme.TextSecondary
 import java.util.Locale
 
 /**
- * High-fidelity vector illustration of the taxi front view
- * matching the exact reference logo:
+ * Official Get Taxi Meter brand emblem vector asset
+ * matching the launcher icon and the visual reference (ic_get_taxi_meter_brand):
+ * - Red outer border with rounded white canvas
+ * - Dynamic red road swoosh
  * - Yellow TAXI roof sign
- * - Dynamic red curved swooshes flanking the vehicle on the left and right
- * - Sleek black car front with windshield, headlights, and front grille
+ * - Taxi front silhouette with headlights
+ * - Get Taxi typography and — METER — pill
+ * - DRIVE • TRACK • EARN tagline
  */
 @Composable
 fun TaxiFrontIllustration(
     modifier: Modifier = Modifier
 ) {
-    Canvas(
+    Image(
+        painter = painterResource(id = R.drawable.ic_get_taxi_meter_brand),
+        contentDescription = "Get Taxi Meter Logo",
         modifier = modifier
-            .width(180.dp)
-            .height(82.dp)
-    ) {
-        val w = size.width
-        val h = size.height
-
-        // 1. Red Dynamic Curved Wings / Swooshes flanking the vehicle
-        val leftRedWing = Path().apply {
-            moveTo(w * 0.28f, h * 0.18f)
-            cubicTo(w * 0.10f, h * 0.25f, w * 0.02f, h * 0.50f, w * 0.08f, h * 0.85f)
-            cubicTo(w * 0.12f, h * 0.92f, w * 0.22f, h * 0.88f, w * 0.20f, h * 0.80f)
-            cubicTo(w * 0.14f, h * 0.56f, w * 0.18f, h * 0.38f, w * 0.32f, h * 0.26f)
-            close()
-        }
-        drawPath(path = leftRedWing, color = BrandRed)
-
-        val rightRedWing = Path().apply {
-            moveTo(w * 0.72f, h * 0.18f)
-            cubicTo(w * 0.90f, h * 0.25f, w * 0.98f, h * 0.50f, w * 0.92f, h * 0.85f)
-            cubicTo(w * 0.88f, h * 0.92f, w * 0.78f, h * 0.88f, w * 0.80f, h * 0.80f)
-            cubicTo(w * 0.86f, h * 0.56f, w * 0.82f, h * 0.38f, w * 0.68f, h * 0.26f)
-            close()
-        }
-        drawPath(path = rightRedWing, color = BrandRed)
-
-        // 2. Black Shadow Base under tires
-        drawOval(
-            color = Color(0x33000000),
-            topLeft = Offset(w * 0.18f, h * 0.88f),
-            size = Size(w * 0.64f, h * 0.10f)
-        )
-
-        // 3. TAXI Roof Sign (Yellow pill trapezoid on roof)
-        val roofSignPath = Path().apply {
-            moveTo(w * 0.41f, h * 0.02f)
-            lineTo(w * 0.59f, h * 0.02f)
-            lineTo(w * 0.62f, h * 0.22f)
-            lineTo(w * 0.38f, h * 0.22f)
-            close()
-        }
-        drawPath(path = roofSignPath, color = BrandYellow, style = Fill)
-        drawPath(path = roofSignPath, color = Color.Black, style = Stroke(width = 1.5f))
-
-        // Roof sign black base
-        drawRect(
-            color = Color.Black,
-            topLeft = Offset(w * 0.36f, h * 0.21f),
-            size = Size(w * 0.28f, h * 0.04f)
-        )
-
-        // 4. Car Cabin & Windshield (Aerodynamic silhouette)
-        val cabinPath = Path().apply {
-            moveTo(w * 0.33f, h * 0.25f)
-            quadraticTo(w * 0.50f, h * 0.16f, w * 0.67f, h * 0.25f)
-            lineTo(w * 0.77f, h * 0.52f)
-            quadraticTo(w * 0.50f, h * 0.50f, w * 0.23f, h * 0.52f)
-            close()
-        }
-        drawPath(path = cabinPath, color = Color(0xFF0F172A), style = Fill)
-
-        // Windshield Glass Highlight
-        val glassPath = Path().apply {
-            moveTo(w * 0.36f, h * 0.28f)
-            quadraticTo(w * 0.50f, h * 0.22f, w * 0.64f, h * 0.28f)
-            lineTo(w * 0.72f, h * 0.49f)
-            quadraticTo(w * 0.50f, h * 0.47f, w * 0.28f, h * 0.49f)
-            close()
-        }
-        drawPath(path = glassPath, color = Color(0xFF1E293B), style = Fill)
-
-        // Passenger / Driver silhouettes inside windshield
-        drawCircle(color = Color(0xFF0F172A), radius = w * 0.024f, center = Offset(w * 0.44f, h * 0.36f))
-        drawCircle(color = Color(0xFF0F172A), radius = w * 0.024f, center = Offset(w * 0.56f, h * 0.36f))
-
-        // 5. Car Hood & Front Bumper
-        val hoodPath = Path().apply {
-            moveTo(w * 0.21f, h * 0.51f)
-            quadraticTo(w * 0.50f, h * 0.47f, w * 0.79f, h * 0.51f)
-            quadraticTo(w * 0.85f, h * 0.62f, w * 0.82f, h * 0.82f)
-            quadraticTo(w * 0.80f, h * 0.92f, w * 0.70f, h * 0.94f)
-            quadraticTo(w * 0.50f, h * 0.96f, w * 0.30f, h * 0.94f)
-            quadraticTo(w * 0.20f, h * 0.92f, w * 0.18f, h * 0.82f)
-            quadraticTo(w * 0.15f, h * 0.62f, w * 0.21f, h * 0.51f)
-            close()
-        }
-        drawPath(path = hoodPath, color = Color(0xFF0F172A), style = Fill)
-
-        // 6. Dual Glowing Headlights
-        // Left headlight
-        drawOval(
-            color = Color.White,
-            topLeft = Offset(w * 0.22f, h * 0.62f),
-            size = Size(w * 0.12f, h * 0.12f)
-        )
-        drawOval(
-            color = Color(0xFFE2E8F0),
-            topLeft = Offset(w * 0.24f, h * 0.64f),
-            size = Size(w * 0.08f, h * 0.08f)
-        )
-
-        // Right headlight
-        drawOval(
-            color = Color.White,
-            topLeft = Offset(w * 0.66f, h * 0.62f),
-            size = Size(w * 0.12f, h * 0.12f)
-        )
-        drawOval(
-            color = Color(0xFFE2E8F0),
-            topLeft = Offset(w * 0.68f, h * 0.64f),
-            size = Size(w * 0.08f, h * 0.08f)
-        )
-
-        // 7. Grille & Lower Bumper
-        drawRoundRect(
-            color = Color(0xFF1E293B),
-            topLeft = Offset(w * 0.38f, h * 0.68f),
-            size = Size(w * 0.24f, h * 0.16f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(4f, 4f)
-        )
-        // Grille horizontal lines
-        drawLine(
-            color = Color(0xFF475569),
-            start = Offset(w * 0.40f, h * 0.73f),
-            end = Offset(w * 0.60f, h * 0.73f),
-            strokeWidth = 1.5f
-        )
-        drawLine(
-            color = Color(0xFF475569),
-            start = Offset(w * 0.41f, h * 0.78f),
-            end = Offset(w * 0.59f, h * 0.78f),
-            strokeWidth = 1.5f
-        )
-    }
+            .size(72.dp),
+        contentScale = ContentScale.Fit
+    )
 }
 
 /**
- * Main prominent branding component matching the visual target:
- * Taxi front graphic -> Get Taxi -> — METER — pill -> Drive • Track • Earn
+ * Main prominent branding component matching the official logo badge
  */
 @Composable
 fun BrandLogo(
     modifier: Modifier = Modifier,
     compact: Boolean = false
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (!compact) {
-            // High-fidelity Taxi Front Illustration
-            TaxiFrontIllustration()
-            Spacer(modifier = Modifier.height(2.dp))
-        } else {
-            // Compact TAXI roof badge
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
-                    .background(BrandYellow)
-                    .border(1.dp, Color(0xFF111827), RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 2.dp, bottomEnd = 2.dp))
-                    .padding(horizontal = 8.dp, vertical = 1.dp)
-            ) {
-                Text(
-                    text = "TAXI",
-                    color = Color.Black,
-                    fontSize = 9.sp,
-                    fontWeight = FontWeight.Black,
-                    letterSpacing = 1.sp
-                )
-            }
-            Spacer(modifier = Modifier.height(2.dp))
-        }
-
-        // "Get Taxi" Main Brand Typography
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Get",
-                color = Color.Black,
-                fontSize = if (compact) 22.sp else 34.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = (-1).sp
-            )
-            Text(
-                text = "Taxi",
-                color = BrandRed,
-                fontSize = if (compact) 22.sp else 34.sp,
-                fontWeight = FontWeight.Black,
-                letterSpacing = (-1).sp
-            )
-        }
-
-        Spacer(modifier = Modifier.height(3.dp))
-
-        // "— METER —" Black pill badge with white text
-        Box(
-            modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .background(Color(0xFF0F172A))
-                .border(1.dp, BrandRed.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
-                .padding(horizontal = if (compact) 10.dp else 16.dp, vertical = 2.5.dp)
-        ) {
-            Text(
-                text = "— M E T E R —",
-                color = Color.White,
-                fontSize = if (compact) 9.sp else 11.5.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.5.sp
-            )
-        }
-
-        if (!compact) {
-            Spacer(modifier = Modifier.height(10.dp))
-            DriveTrackEarnTagline()
-        }
-    }
+    Image(
+        painter = painterResource(id = R.drawable.ic_get_taxi_meter_brand),
+        contentDescription = "Get Taxi Meter Logo",
+        modifier = modifier
+            .size(if (compact) 64.dp else 88.dp),
+        contentScale = ContentScale.Fit
+    )
 }
 
 /**

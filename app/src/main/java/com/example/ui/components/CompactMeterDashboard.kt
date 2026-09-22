@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,11 +47,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.R
 import com.example.ui.theme.AppCardBorder
 import com.example.ui.theme.AppCardSecondary
 import com.example.ui.theme.AppWhiteBg
@@ -128,64 +132,25 @@ fun CompactMeterDashboard(
                 // LEFT: ☰ Menu
                 IconButton(
                     onClick = onMenuClick,
-                    modifier = Modifier.size(36.dp)
+                    modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Menu,
                         contentDescription = "Menu",
                         tint = Color.Black,
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
-                // CENTER: TAXI vehicle artwork + Get Taxi + — METER —
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // Taxi Front Artwork with Yellow TAXI roof badge and red wings
-                    TaxiFrontIllustration(
-                        modifier = Modifier
-                            .width(160.dp)
-                            .height(64.dp)
-                    )
-
-                    // Get Taxi Typography
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "Get",
-                            color = Color.Black,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = (-0.5).sp
-                        )
-                        Text(
-                            text = "Taxi",
-                            color = BrandRed,
-                            fontSize = 22.sp,
-                            fontWeight = FontWeight.Black,
-                            letterSpacing = (-0.5).sp
-                        )
-                    }
-
-                    // — METER — badge
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFF0F172A))
-                            .border(1.2.dp, BrandRed.copy(alpha = 0.85f), RoundedCornerShape(8.dp))
-                            .padding(horizontal = 10.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = "— M E T E R —",
-                            color = Color.White,
-                            fontSize = 8.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.5.sp
-                        )
-                    }
-                }
+                // CENTER: Official Get Taxi Meter Logo Badge
+                Image(
+                    painter = painterResource(id = R.drawable.ic_get_taxi_meter_brand),
+                    contentDescription = "Get Taxi Meter Logo",
+                    modifier = Modifier
+                        .size(72.dp)
+                        .padding(vertical = 2.dp),
+                    contentScale = ContentScale.Fit
+                )
 
                 // RIGHT: Share & ⚙ Settings
                 Row(
@@ -204,13 +169,13 @@ fun CompactMeterDashboard(
                     )
                     IconButton(
                         onClick = onSettingsClick,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(38.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
                             contentDescription = "Settings",
                             tint = Color.Black,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(22.dp)
                         )
                     }
                 }
@@ -557,7 +522,7 @@ fun CompactMeterDashboard(
             onClick = onActionClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .height(50.dp),
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = BrandRed,
@@ -573,50 +538,19 @@ fun CompactMeterDashboard(
                     imageVector = if (isTripActive) Icons.Default.Stop else Icons.Default.PlayArrow,
                     contentDescription = if (isTripActive) "End Trip" else "Start Trip",
                     tint = Color.White,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (isTripActive) "END TRIP" else "START TRIP",
-                    fontSize = 16.sp,
+                    fontSize = 16.5.sp,
                     fontWeight = FontWeight.Black,
                     letterSpacing = 0.8.sp
                 )
             }
         }
 
-        // 7. QUICK ACTIONS ROW
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            QuickActionButtonCompact(
-                icon = Icons.Default.History,
-                label = "Trip History",
-                onClick = onTripHistoryClick,
-                modifier = Modifier.weight(1f)
-            )
-            QuickActionButtonCompact(
-                icon = Icons.Default.Settings,
-                label = "Tariff Settings",
-                onClick = onTariffSettingsClick,
-                modifier = Modifier.weight(1f)
-            )
-            QuickActionButtonCompact(
-                icon = Icons.Default.Assessment,
-                label = "Today's Summary",
-                onClick = onTodaySummaryClick,
-                modifier = Modifier.weight(1f)
-            )
-            QuickActionButtonCompact(
-                icon = Icons.Default.MoreHoriz,
-                label = "More",
-                onClick = onMoreClick,
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        // 8. BOTTOM BRANDING
+        // 7. BOTTOM BRANDING FOOTER
         CurvedBrandFooter(
             compact = false
         )

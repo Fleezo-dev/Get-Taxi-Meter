@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="1000"
+    android:viewportHeight="1000">
+
+    <!-- 0. White Rounded Canvas Background with Red Outer Border -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:strokeColor="#ED1C24"
+        android:strokeWidth="24"
+        android:pathData="M 235,25 L 765,25 Q 975,25 975,235 L 975,765 Q 975,975 765,975 L 235,975 Q 25,975 25,765 L 25,235 Q 25,25 235,25 Z" />
+
+    <!-- Clip Path for the Inner Badge Elements -->
+    <group>
+        <clip-path
+            android:pathData="M 235,26 L 765,26 Q 974,26 974,235 L 974,765 Q 974,974 765,974 L 235,974 Q 26,974 26,765 L 26,235 Q 26,26 235,26 Z" />
+
+        <!-- 1. Red Dynamic Road Swoosh on Top Left -->
+        <path
+            android:fillColor="#ED1C24"
+            android:pathData="M 12,375 C 20,250 115,150 375,140 C 378,148 380,156 380,160 C 180,185 75,285 45,420 Z" />
+
+        <!-- White Center Highway Stripe on Swoosh -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 105,325 C 160,235 235,180 365,152 L 362,165 C 230,195 160,250 112,334 Z" />
+
+        <!-- 2. Bottom Red Curved Banner Area (DRIVE • TRACK • EARN) -->
+        <path
+            android:fillColor="#D9141D"
+            android:pathData="M 15,725 Q 500,645 985,725 L 985,985 L 15,985 Z" />
+        <!-- Bottom Darker Accent Edge -->
+        <path
+            android:fillColor="#9E0A10"
+            android:pathData="M 15,915 Q 500,895 985,915 L 985,985 L 15,985 Z" />
+
+        <!-- 3. TAXI VEHICLE (Front View Black Sports Sedan) -->
+        <!-- Taxi Roof Light Mount Pedestal -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 390,154 L 610,154 L 602,165 L 398,165 Z" />
+
+        <!-- Yellow TAXI Roof Sign Box Body -->
+        <path
+            android:fillColor="#FFD100"
+            android:strokeColor="#0A0A0A"
+            android:strokeWidth="9"
+            android:pathData="M 412,96 L 588,96 Q 598,96 601,106 L 615,145 Q 617,154 606,154 L 394,154 Q 383,154 385,145 L 399,106 Q 402,96 412,96 Z" />
+
+        <!-- TAXI Letters on Roof Sign -->
+        <!-- 'T' -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 436,114 L 466,114 L 466,120 L 454,120 L 454,142 L 448,142 L 448,120 L 436,120 Z" />
+        <!-- 'A' -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 470,142 L 480,114 L 488,114 L 498,142 L 491,142 L 488,134 L 480,134 L 477,142 Z M 481,128 L 487,128 L 484,119 Z" />
+        <!-- 'X' -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 504,114 L 513,128 L 522,114 L 529,114 L 517,130 L 530,142 L 522,142 L 513,131 L 504,142 L 497,142 L 510,128 L 498,114 Z" />
+        <!-- 'I' -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 536,114 L 544,114 L 544,142 L 536,142 Z" />
+
+        <!-- Main Car Silhouette (Sleek Black Body) -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 345,165 C 400,158 600,158 655,165 C 685,178 715,220 736,250 C 750,246 785,244 804,258 C 810,263 808,274 796,280 C 775,288 746,285 735,278 C 745,305 775,320 810,330 C 845,342 855,365 842,398 C 830,422 800,435 765,442 C 680,455 320,455 235,442 C 200,435 170,422 158,398 C 145,365 155,342 190,330 C 225,320 255,305 265,278 C 254,285 225,288 204,280 C 192,274 190,263 196,258 C 215,244 250,246 264,250 C 285,220 315,178 345,165 Z" />
+
+        <!-- Windshield (Dark Charcoal Area) -->
+        <path
+            android:fillColor="#1A1C21"
+            android:pathData="M 358,175 C 410,168 590,168 642,175 C 665,186 692,225 712,258 C 630,266 370,266 288,258 C 308,225 335,186 358,175 Z" />
+
+        <!-- Driver & Passenger Headrest Silhouettes -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 382,216 Q 402,196 422,216 L 428,258 L 376,258 Z" />
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 578,216 Q 598,196 618,216 L 624,258 L 572,258 Z" />
+
+        <!-- Center Grille Cutout -->
+        <path
+            android:fillColor="#16181D"
+            android:pathData="M 382,342 Q 500,352 618,342 L 610,376 Q 500,390 390,376 Z" />
+        <path
+            android:fillColor="#111317"
+            android:pathData="M 390,382 Q 500,395 610,382 L 605,398 Q 500,412 395,398 Z" />
+
+        <!-- Glowing White LED Headlights (Left) -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 235,345 C 265,340 315,352 342,376 C 315,372 270,365 240,352 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 250,365 C 275,363 310,372 332,388 C 305,385 275,380 255,372 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 338,368 L 358,384 L 348,388 L 330,373 Z" />
+
+        <!-- Glowing White LED Headlights (Right) -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 765,345 C 735,340 685,352 658,376 C 685,372 730,365 760,352 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 750,365 C 725,363 690,372 668,388 C 695,385 725,380 745,372 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 662,368 L 642,384 L 652,388 L 670,373 Z" />
+
+        <!-- 4. "Get Taxi" TYPOGRAPHY -->
+        <!-- 'G' in Get -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 215,440 C 145,440 92,488 92,560 C 92,632 148,678 220,678 C 285,678 330,642 340,588 L 230,588 L 230,535 L 395,535 L 395,572 C 390,645 322,730 218,730 C 105,730 32,655 32,558 C 32,460 108,388 220,388 C 295,388 355,425 385,472 L 332,505 C 310,465 268,440 215,440 Z" />
+
+        <!-- 'e' in Get -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 335,558 C 335,488 375,442 442,442 C 505,442 545,486 545,558 L 390,558 C 392,595 415,620 452,620 C 478,620 498,608 510,592 L 552,618 C 530,648 495,674 448,674 C 375,674 335,626 335,558 Z M 495,520 C 492,486 472,472 442,472 C 412,472 392,488 390,520 Z" />
+
+        <!-- 't' in Get -->
+        <path
+            android:fillColor="#0A0A0A"
+            android:pathData="M 525,408 L 575,408 L 575,450 L 625,450 L 625,495 L 575,495 L 575,605 C 575,625 585,632 608,632 C 618,632 626,630 634,626 L 634,670 C 618,674 600,676 580,676 C 535,676 525,655 525,610 L 525,495 L 485,495 L 485,450 L 525,450 Z" />
+
+        <!-- 'T' in Taxi (Red) -->
+        <path
+            android:fillColor="#ED1C24"
+            android:pathData="M 605,445 L 730,445 L 730,500 L 696,500 L 696,672 L 638,672 L 638,500 L 605,500 Z" />
+
+        <!-- 'a' in Taxi (Red) -->
+        <path
+            android:fillColor="#ED1C24"
+            android:pathData="M 696,565 C 696,508 735,480 788,480 C 824,480 846,496 856,515 L 856,486 L 908,486 L 908,672 L 856,672 L 856,648 C 845,666 822,678 785,678 C 732,678 696,638 696,565 Z M 856,572 C 856,532 834,515 802,515 C 770,515 748,535 748,575 C 748,615 770,638 802,638 C 834,638 856,618 856,572 Z" />
+
+        <!-- 'x' in Taxi (Red) -->
+        <path
+            android:fillColor="#ED1C24"
+            android:pathData="M 795,486 L 850,486 L 892,575 L 935,486 L 990,486 L 925,580 L 995,672 L 940,672 L 892,592 L 845,672 L 790,672 L 860,580 Z" />
+
+        <!-- 'i' Stem in Taxi (Red) -->
+        <path
+            android:fillColor="#ED1C24"
+            android:pathData="M 850,486 L 905,486 L 905,672 L 850,672 Z" />
+
+        <!-- Red Location Pin Marker as the Dot of 'i' -->
+        <path
+            android:fillColor="#ED1C24"
+            android:pathData="M 878,365 C 850,365 828,387 828,415 C 828,440 855,465 878,495 C 901,465 928,440 928,415 C 928,387 906,365 878,365 Z" />
+        <!-- White Circular Hole in Center of Pin -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 878,398 C 887,398 895,406 895,415 C 895,424 887,432 878,432 C 869,432 861,424 861,415 C 861,406 869,398 878,398 Z" />
+
+        <!-- 5. "— METER —" BLACK CAPSULE BADGE WITH RED DASHES -->
+        <!-- Left Red Dash -->
+        <path
+            android:fillColor="#ED1C24"
+            android:pathData="M 132.5,675 L 182.5,675 Q 190,675 190,682.5 Q 190,690 182.5,690 L 132.5,690 Q 125,690 125,682.5 Q 125,675 132.5,675 Z" />
+
+        <!-- Center Black Pill Badge -->
+        <path
+            android:fillColor="#111318"
+            android:pathData="M 254.5,630 L 745.5,630 Q 798,630 798,682.5 Q 798,735 745.5,735 L 254.5,735 Q 202,735 202,682.5 Q 202,630 254.5,630 Z" />
+
+        <!-- Right Red Dash -->
+        <path
+            android:fillColor="#ED1C24"
+            android:pathData="M 817.5,675 L 867.5,675 Q 875,675 875,682.5 Q 875,690 867.5,690 L 817.5,690 Q 810,690 810,682.5 Q 810,675 817.5,675 Z" />
+
+        <!-- METER White Letters inside Black Pill -->
+        <!-- 'M' -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 318,655 L 342,655 L 368,696 L 394,655 L 418,655 L 418,710 L 398,710 L 398,678 L 378,710 L 358,710 L 338,678 L 338,710 L 318,710 Z" />
+        <!-- 'E' -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 436,655 L 488,655 L 488,670 L 458,670 L 458,678 L 484,678 L 484,692 L 458,692 L 458,695 L 488,695 L 488,710 L 436,710 Z" />
+        <!-- 'T' -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 505,655 L 558,655 L 558,670 L 542,670 L 542,710 L 522,710 L 522,670 L 505,670 Z" />
+        <!-- 'E' -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 575,655 L 627,655 L 627,670 L 597,670 L 597,678 L 623,678 L 623,692 L 597,692 L 597,695 L 627,695 L 627,710 L 575,710 Z" />
+        <!-- 'R' -->
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M 645,655 L 685,655 Q 706,655 706,673 Q 706,686 695,690 L 712,710 L 688,710 L 676,692 L 665,692 L 665,710 L 645,710 Z M 665,668 L 665,680 L 684,680 Q 690,680 690,674 Q 690,668 684,668 Z" />
+
+        <!-- 6. SLOGAN "DRIVE • TRACK • EARN" on Bottom Red Banner -->
+        <!-- D -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 235,815 L 260,815 Q 275,815 275,830 Q 275,845 260,845 L 235,845 Z M 245,823 L 245,837 L 258,837 Q 265,837 265,830 Q 265,823 258,823 Z" />
+        <!-- R -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 285,815 L 305,815 Q 318,815 318,825 Q 318,831 312,834 L 320,845 L 308,845 L 302,835 L 295,835 L 295,845 L 285,845 Z M 295,822 L 295,828 L 305,828 Q 309,828 309,825 Q 309,822 305,822 Z" />
+        <!-- I -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 328,815 L 338,815 L 338,845 L 328,845 Z" />
+        <!-- V -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 348,815 L 358,815 L 368,838 L 378,815 L 388,815 L 374,845 L 362,845 Z" />
+        <!-- E -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 398,815 L 425,815 L 425,823 L 408,823 L 408,827 L 422,827 L 422,833 L 408,833 L 408,837 L 425,837 L 425,845 L 398,845 Z" />
+
+        <!-- Bullet Dot • -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 452,830 C 456,830 459,827 459,823 C 459,819 456,816 452,816 C 448,816 445,819 445,823 C 445,827 448,830 452,830 Z" />
+
+        <!-- T -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 480,815 L 512,815 L 512,823 L 501,823 L 501,845 L 491,845 L 491,823 L 480,823 Z" />
+        <!-- R -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 520,815 L 540,815 Q 553,815 553,825 Q 553,831 547,834 L 555,845 L 543,845 L 537,835 L 530,835 L 530,845 L 520,845 Z M 530,822 L 530,828 L 540,828 Q 544,828 544,825 Q 544,822 540,822 Z" />
+        <!-- A -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 568,815 L 580,815 L 594,845 L 583,845 L 580,838 L 568,838 L 565,845 L 554,845 Z M 574,823 L 570,831 L 578,831 Z" />
+        <!-- C -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 622,821 Q 614,815 604,821 Q 598,826 598,830 Q 598,835 604,839 Q 614,845 622,839 L 626,846 Q 612,853 596,846 Q 587,838 587,830 Q 587,822 596,814 Q 612,807 626,814 Z" />
+        <!-- K -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 635,815 L 645,815 L 645,827 L 660,815 L 672,815 L 654,829 L 674,845 L 661,845 L 645,832 L 645,845 L 635,845 Z" />
+
+        <!-- Bullet Dot • -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 698,830 C 702,830 705,827 705,823 C 705,819 702,816 698,816 C 694,816 691,819 691,823 C 691,827 694,830 698,830 Z" />
+
+        <!-- E -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 725,815 L 752,815 L 752,823 L 735,823 L 735,827 L 749,827 L 749,833 L 735,833 L 735,837 L 752,837 L 752,845 L 725,845 Z" />
+        <!-- A -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 768,815 L 780,815 L 794,845 L 783,845 L 780,838 L 768,838 L 765,845 L 754,845 Z M 774,823 L 770,831 L 778,831 Z" />
+        <!-- R -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 804,815 L 824,815 Q 837,815 837,825 Q 837,831 831,834 L 839,845 L 827,845 L 821,835 L 814,835 L 814,845 L 804,845 Z M 814,822 L 814,828 L 824,828 Q 828,828 828,825 Q 828,822 824,822 Z" />
+        <!-- N -->
+        <path android:fillColor="#FFFFFF" android:pathData="M 847,815 L 858,815 L 874,836 L 874,815 L 884,815 L 884,845 L 873,845 L 857,824 L 857,845 L 847,845 Z" />
+    </group>
+</vector>

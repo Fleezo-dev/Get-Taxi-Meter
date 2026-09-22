@@ -9,6 +9,9 @@ import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,8 +25,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Assessment
 import androidx.compose.material.icons.filled.BatteryChargingFull
 import androidx.compose.material.icons.filled.HelpOutline
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
@@ -42,11 +48,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.R
 import com.example.model.TripStatus
 import com.example.service.TaxiMeterService
 import com.example.ui.components.CompactMeterDashboard
@@ -275,79 +284,199 @@ fun HomeScreen(
         )
     }
 
-    // MORE OPTIONS MENU DIALOG
+    // HAMBURGER / MORE OPTIONS MENU DIALOG
     if (showMoreMenuDialog) {
         AlertDialog(
             onDismissRequest = { showMoreMenuDialog = false },
             containerColor = Color.White,
             title = {
-                Text(
-                    text = "Options & Tools",
-                    color = Color.Black,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_get_taxi_meter_brand),
+                        contentDescription = "Get Taxi Meter",
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                    Column {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(text = "Get", color = Color.Black, fontSize = 17.sp, fontWeight = FontWeight.Black)
+                            Text(text = "Taxi", color = BrandRed, fontSize = 17.sp, fontWeight = FontWeight.Black)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(text = "Meter", color = Color(0xFF1E293B), fontSize = 17.sp, fontWeight = FontWeight.Bold)
+                        }
+                        Text(
+                            text = "Main Menu & Navigation",
+                            color = TextSecondary,
+                            fontSize = 11.5.sp
+                        )
+                    }
+                }
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Battery Guidance Option
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    // 1. Trip History & Receipts
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
                             .clickable {
                                 showMoreMenuDialog = false
-                                viewModel.navigateTo(Screen.BATTERY_GUIDANCE)
+                                viewModel.navigateTo(Screen.HISTORY)
                             }
-                            .padding(10.dp),
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.BatteryChargingFull, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text("Battery & Background Settings", color = Color.Black, fontSize = 13.5.sp, fontWeight = FontWeight.Medium)
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(BrandRed.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.History, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Trip History & Receipts", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("View past trips, fares & print receipts", color = TextSecondary, fontSize = 11.sp)
+                        }
                     }
 
-                    // Share App Option
+                    // 2. Tariff & Meter Settings
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                showMoreMenuDialog = false
-                                shareApp(context)
-                            }
-                            .padding(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Share, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text("Share Get Taxi Meter", color = Color.Black, fontSize = 13.5.sp, fontWeight = FontWeight.Medium)
-                    }
-
-                    // Help & Tariff Settings
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
                             .clickable {
                                 showMoreMenuDialog = false
                                 viewModel.navigateTo(Screen.SETTINGS)
                             }
-                            .padding(10.dp),
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.HelpOutline, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text("Tariff & App Info", color = Color.Black, fontSize = 13.5.sp, fontWeight = FontWeight.Medium)
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF1E293B).copy(alpha = 0.10f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Settings, contentDescription = null, tint = Color(0xFF1E293B), modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Tariff & Meter Settings", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Base fare, km rate & waiting charges", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 3. Today's Summary
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                showTodaySummaryDialog = true
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(BrandRed.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Assessment, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Today's Summary", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("${todayTrips.size} trips • ₹${String.format(Locale.US, "%.2f", todayEarnings)} earned", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 4. Battery & Background Settings
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                viewModel.navigateTo(Screen.BATTERY_GUIDANCE)
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF16A34A).copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.BatteryChargingFull, contentDescription = null, tint = Color(0xFF16A34A), modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Battery & Background Settings", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Keep meter active with screen off", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 5. Share App
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                shareApp(context)
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(Color(0xFF2563EB).copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Share, contentDescription = null, tint = Color(0xFF2563EB), modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Share Get Taxi Meter", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Share app with fellow drivers", color = TextSecondary, fontSize = 11.sp)
+                        }
                     }
                 }
             },
             confirmButton = {
                 Button(
                     onClick = { showMoreMenuDialog = false },
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandRed, contentColor = Color.White)
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandRed, contentColor = Color.White),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("Close")
+                    Text("Close", fontWeight = FontWeight.Bold)
                 }
             }
         )

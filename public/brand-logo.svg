@@ -1,0 +1,332 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <defs>
+    <!-- Soft 3D Drop Shadow for the main emblem badge -->
+    <filter id="badgeShadow" x="-10%" y="-10%" width="125%" height="125%">
+      <feDropShadow dx="0" dy="16" stdDeviation="24" flood-color="#000000" flood-opacity="0.18" />
+    </filter>
+
+    <!-- Clip Path for the Rounded Squircle Badge (Corner radius 210px) -->
+    <clipPath id="squircleClip">
+      <rect x="25" y="25" width="950" height="950" rx="210" ry="210" />
+    </clipPath>
+
+    <!-- Glossy Red Gradient for Bottom Banner -->
+    <linearGradient id="redBannerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ED1C24" />
+      <stop offset="60%" stop-color="#D9141D" />
+      <stop offset="100%" stop-color="#BA0C14" />
+    </linearGradient>
+
+    <!-- Radial Glow for Headlights -->
+    <radialGradient id="headlightGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
+      <stop offset="70%" stop-color="#F1F5F9" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#CBD5E1" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Red Swoosh Gradient -->
+    <linearGradient id="swooshGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ED1C24" />
+      <stop offset="100%" stop-color="#EA1A22" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Squircle Container with Red Stroke & Crisp White Canvas -->
+  <rect
+    x="25"
+    y="25"
+    width="950"
+    height="950"
+    rx="210"
+    ry="210"
+    fill="#FFFFFF"
+    stroke="#ED1C24"
+    stroke-width="24"
+  />
+
+  <!-- Inner Clipped Artwork Area -->
+  <g clip-path="url(#squircleClip)">
+
+    <!-- 1. Red Dynamic Road Swoosh on Top Left -->
+    <path
+      d="M 12 375 C 20 250, 115 150, 375 140 C 378 148, 380 156, 380 160 C 180 185, 75 285, 45 420 Z"
+      fill="url(#swooshGrad)"
+    />
+    <!-- White Highway Center Stripe on Swoosh -->
+    <path
+      d="M 105 325 C 160 235, 235 180, 365 152 L 362 165 C 230 195, 160 250, 112 334 Z"
+      fill="#FFFFFF"
+    />
+
+    <!-- 2. Bottom Red Curved Banner Area (DRIVE • TRACK • EARN) -->
+    <path
+      d="M 15 725 Q 500 645 985 725 L 985 985 L 15 985 Z"
+      fill="url(#redBannerGrad)"
+    />
+    <!-- 3D Bevel Highlight along the Top Edge of Red Banner -->
+    <path
+      d="M 15 725 Q 500 645 985 725"
+      fill="none"
+      stroke="#FF6B72"
+      stroke-width="3"
+      opacity="0.6"
+    />
+    <!-- Bottom Darker Accent Edge -->
+    <path
+      d="M 15 915 Q 500 895 985 915 L 985 985 L 15 985 Z"
+      fill="#9E0A10"
+      opacity="0.4"
+    />
+
+    <!-- ======================================================= -->
+    <!-- 3. TAXI VEHICLE (Front View, High-Fidelity Black Sports Car) -->
+    <!-- ======================================================= -->
+
+    <!-- Yellow TAXI Roof Light Sign -->
+    <!-- Black Mount Pedestal -->
+    <path
+      d="M 390 154 L 610 154 L 602 165 L 398 165 Z"
+      fill="#0A0A0A"
+    />
+    <!-- Yellow Sign Box Body with Black Outline -->
+    <path
+      d="M 412 96 L 588 96 Q 598 96 601 106 L 615 145 Q 617 154 606 154 L 394 154 Q 383 154 385 145 L 399 106 Q 402 96 412 96 Z"
+      fill="#FFD100"
+      stroke="#0A0A0A"
+      stroke-width="9"
+      stroke-linejoin="round"
+    />
+    <!-- TAXI Letters on Yellow Sign -->
+    <g fill="#0A0A0A">
+      <!-- 'T' -->
+      <path d="M 436 114 L 466 114 L 466 120 L 454 120 L 454 142 L 448 142 L 448 120 L 436 120 Z" />
+      <!-- 'A' -->
+      <path d="M 470 142 L 480 114 L 488 114 L 498 142 L 491 142 L 488 134 L 480 134 L 477 142 Z M 481 128 L 487 128 L 484 119 Z" />
+      <!-- 'X' -->
+      <path d="M 504 114 L 513 128 L 522 114 L 529 114 L 517 130 L 530 142 L 522 142 L 513 131 L 504 142 L 497 142 L 510 128 L 498 114 Z" />
+      <!-- 'I' -->
+      <path d="M 536 114 L 544 114 L 544 142 L 536 142 Z" />
+    </g>
+
+    <!-- Main Car Cabin Roof & Glass & Body Silhouette -->
+    <!-- Car Outer Aerodynamic Silhouette (Black) -->
+    <path
+      d="M 345 165
+         C 400 158, 600 158, 655 165
+         C 685 178, 715 220, 736 250
+         C 750 246, 785 244, 804 258
+         C 810 263, 808 274, 796 280
+         C 775 288, 746 285, 735 278
+         C 745 305, 775 320, 810 330
+         C 845 342, 855 365, 842 398
+         C 830 422, 800 435, 765 442
+         C 680 455, 320 455, 235 442
+         C 200 435, 170 422, 158 398
+         C 145 365, 155 342, 190 330
+         C 225 320, 255 305, 265 278
+         C 254 285, 225 288, 204 280
+         C 192 274, 190 263, 196 258
+         C 215 244, 250 246, 264 250
+         C 285 220, 315 178, 345 165 Z"
+      fill="#0A0A0A"
+    />
+
+    <!-- Windshield Opening (Deep Charcoal Glass Area) -->
+    <path
+      d="M 358 175
+         C 410 168, 590 168, 642 175
+         C 665 186, 692 225, 712 258
+         C 630 266, 370 266, 288 258
+         C 308 225, 335 186, 358 175 Z"
+      fill="#1A1C21"
+    />
+
+    <!-- Interior Headrest / Seat Silhouettes -->
+    <!-- Left Driver Headrest -->
+    <path
+      d="M 382 216 Q 402 196 422 216 L 428 258 L 376 258 Z"
+      fill="#0A0A0A"
+    />
+    <!-- Right Passenger Headrest -->
+    <path
+      d="M 578 216 Q 598 196 618 216 L 624 258 L 572 258 Z"
+      fill="#0A0A0A"
+    />
+
+    <!-- Hood Character Lines & Center Crease -->
+    <path
+      d="M 400 270 L 415 345 Q 500 355 585 345 L 600 270"
+      fill="none"
+      stroke="#2B2F38"
+      stroke-width="3"
+    />
+    <!-- Center Lower Grille Cutout -->
+    <path
+      d="M 382 342 Q 500 352 618 342 L 610 376 Q 500 390 390 376 Z"
+      fill="#16181D"
+    />
+    <path
+      d="M 390 382 Q 500 395 610 382 L 605 398 Q 500 412 395 398 Z"
+      fill="#111317"
+    />
+
+    <!-- Sleek High-Tech LED Headlights -->
+    <!-- Left Headlight Cluster -->
+    <g>
+      <!-- Upper Blade / LED Eyebrow -->
+      <path
+        d="M 235 345 C 265 340, 315 352, 342 376 C 315 372, 270 365, 240 352 Z"
+        fill="#FFFFFF"
+      />
+      <!-- Lower Blade / LED Light Bar -->
+      <path
+        d="M 250 365 C 275 363, 310 372, 332 388 C 305 385, 275 380, 255 372 Z"
+        fill="#FFFFFF"
+      />
+      <!-- Slanted Accent Highlight -->
+      <path
+        d="M 338 368 L 358 384 L 348 388 L 330 373 Z"
+        fill="#FFFFFF"
+      />
+    </g>
+
+    <!-- Right Headlight Cluster (Symmetric) -->
+    <g>
+      <!-- Upper Blade / LED Eyebrow -->
+      <path
+        d="M 765 345 C 735 340, 685 352, 658 376 C 685 372, 730 365, 760 352 Z"
+        fill="#FFFFFF"
+      />
+      <!-- Lower Blade / LED Light Bar -->
+      <path
+        d="M 750 365 C 725 363, 690 372, 668 388 C 695 385, 725 380, 745 372 Z"
+        fill="#FFFFFF"
+      />
+      <!-- Slanted Accent Highlight -->
+      <path
+        d="M 662 368 L 642 384 L 652 388 L 670 373 Z"
+        fill="#FFFFFF"
+      />
+    </g>
+
+    <!-- ======================================================= -->
+    <!-- 4. "Get Taxi" TYPOGRAPHY (Prominent, High-Contrast) -->
+    <!-- ======================================================= -->
+
+    <!-- "Get" in Solid Black (Extra Bold Geometric) -->
+    <g fill="#0A0A0A">
+      <!-- 'G' -->
+      <path d="M 215 440
+               C 145 440, 92 488, 92 560
+               C 92 632, 148 678, 220 678
+               C 285 678, 330 642, 340 588
+               L 230 588 L 230 535
+               L 395 535
+               L 395 572
+               C 390 645, 322 730, 218 730
+               C 105 730, 32 655, 32 558
+               C 32 460, 108 388, 220 388
+               C 295 388, 355 425, 385 472
+               L 332 505
+               C 310 465, 268 440, 215 440 Z" />
+
+      <!-- 'e' -->
+      <path d="M 335 558
+               C 335 488, 375 442, 442 442
+               C 505 442, 545 486, 545 558
+               L 390 558
+               C 392 595, 415 620, 452 620
+               C 478 620, 498 608, 510 592
+               L 552 618
+               C 530 648, 495 674, 448 674
+               C 375 674, 335 626, 335 558 Z
+               M 495 520
+               C 492 486, 472 472, 442 472
+               C 412 472, 392 488, 390 520 Z" />
+
+      <!-- 't' -->
+      <path d="M 525 408 L 575 408 L 575 450 L 625 450 L 625 495 L 575 495 L 575 605 C 575 625, 585 632, 608 632 C 618 632, 626 630, 634 626 L 634 670 C 618 674, 600 676, 580 676 C 535 676, 525 655, 525 610 L 525 495 L 485 495 L 485 450 L 525 450 Z" />
+    </g>
+
+    <!-- "Taxi" in Vibrant Crimson Red -->
+    <g fill="#ED1C24">
+      <!-- 'T' -->
+      <path d="M 605 445 L 730 445 L 730 500 L 696 500 L 696 672 L 638 672 L 638 500 L 605 500 Z" />
+
+      <!-- 'a' -->
+      <path d="M 696 565
+               C 696 508, 735 480, 788 480
+               C 824 480, 846 496, 856 515
+               L 856 486 L 908 486 L 908 672 L 856 672 L 856 648
+               C 845 666, 822 678, 785 678
+               C 732 678, 696 638, 696 565 Z
+               M 856 572
+               C 856 532, 834 515, 802 515
+               C 770 515, 748 535, 748 575
+               C 748 615, 770 638, 802 638
+               C 834 638, 856 618, 856 572 Z" />
+
+      <!-- 'x' -->
+      <path d="M 795 486 L 850 486 L 892 575 L 935 486 L 990 486 L 925 580 L 995 672 L 940 672 L 892 592 L 845 672 L 790 672 L 860 580 Z" />
+
+      <!-- 'i' Stem -->
+      <path d="M 850 486 L 905 486 L 905 672 L 850 672 Z" />
+    </g>
+
+    <!-- LOCATION PIN over the 'i' in Taxi (The Signature Marker Dot) -->
+    <!-- Red Pin Body -->
+    <path
+      d="M 878 365
+         C 850 365, 828 387, 828 415
+         C 828 440, 855 465, 878 495
+         C 901 465, 928 440, 928 415
+         C 928 387, 906 365, 878 365 Z"
+      fill="#ED1C24"
+    />
+    <!-- Pin White Circular Hole in Center -->
+    <circle cx="878" cy="415" r="17" fill="#FFFFFF" />
+
+    <!-- ======================================================= -->
+    <!-- 5. "— METER —" BLACK CAPSULE BADGE WITH RED DASHES -->
+    <!-- ======================================================= -->
+
+    <!-- Left Horizontal Red Dash -->
+    <rect x="125" y="675" width="65" height="15" rx="7.5" ry="7.5" fill="#ED1C24" />
+
+    <!-- Center Black Pill Badge -->
+    <rect
+      x="202"
+      y="630"
+      width="596"
+      height="105"
+      rx="52.5"
+      ry="52.5"
+      fill="#111318"
+    />
+
+    <!-- Right Horizontal Red Dash -->
+    <rect x="810" y="675" width="65" height="15" rx="7.5" ry="7.5" fill="#ED1C24" />
+
+    <!-- METER White Bold Letters inside the Black Pill -->
+    <g fill="#FFFFFF">
+      <!-- 'M' -->
+      <path d="M 318 655 L 342 655 L 368 696 L 394 655 L 418 655 L 418 710 L 398 710 L 398 678 L 378 710 L 358 710 L 338 678 L 338 710 L 318 710 Z" />
+      <!-- 'E' -->
+      <path d="M 436 655 L 488 655 L 488 670 L 458 670 L 458 678 L 484 678 L 484 692 L 458 692 L 458 695 L 488 695 L 488 710 L 436 710 Z" />
+      <!-- 'T' -->
+      <path d="M 505 655 L 558 655 L 558 670 L 542 670 L 542 710 L 522 710 L 522 670 L 505 670 Z" />
+      <!-- 'E' -->
+      <path d="M 575 655 L 627 655 L 627 670 L 597 670 L 597 678 L 623 678 L 623 692 L 597 692 L 597 695 L 627 695 L 627 710 L 575 710 Z" />
+      <!-- 'R' -->
+      <path d="M 645 655 L 685 655 Q 706 655 706 673 Q 706 686 695 690 L 712 710 L 688 710 L 676 692 L 665 692 L 665 710 L 645 710 Z M 665 668 L 665 680 L 684 680 Q 690 680 690 674 Q 690 668 684 668 Z" />
+    </g>
+
+    <!-- ======================================================= -->
+    <!-- 6. SLOGAN "DRIVE  •  TRACK  •  EARN" (On Red Banner) -->
+    <!-- ======================================================= -->
+    <g fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="34" letter-spacing="4">
+      <text x="500" y="836" text-anchor="middle">DRIVE   &#8226;   TRACK   &#8226;   EARN</text>
+    </g>
+
+  </g>
+</svg>
