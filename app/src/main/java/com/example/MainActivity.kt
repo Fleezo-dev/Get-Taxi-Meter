@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import com.example.model.TripStatus
 import com.example.ui.screens.ActivationScreen
 import com.example.ui.screens.AdminScreen
+import com.example.ui.screens.AuthScreen
 import com.example.ui.screens.BatteryGuidanceScreen
 import com.example.ui.screens.DriverProfileScreen
 import com.example.ui.screens.HomeScreen
@@ -70,11 +71,13 @@ fun MainContent(
 
     // Safe Back handling: Leaving Live Meter screen does NOT kill the trip!
     BackHandler {
+        if (currentScreen == Screen.AUTH) return@BackHandler
         if (!viewModel.isActivated.value && currentScreen != Screen.ACTIVATION && currentScreen != Screen.DRIVER_PROFILE) {
             Toast.makeText(context, "Activation is required to use the meter", Toast.LENGTH_SHORT).show()
             return@BackHandler
         }
         when (currentScreen) {
+            Screen.AUTH -> Unit
             Screen.LIVE_METER -> {
                 if (tripState.status == TripStatus.ACTIVE || tripState.status == TripStatus.WAITING) {
                     // Minimize app so trip continues safely in Foreground Service
@@ -109,6 +112,10 @@ fun MainContent(
         contentWindowInsets = WindowInsets.safeDrawing
     ) { innerPadding ->
         when (currentScreen) {
+            Screen.AUTH -> AuthScreen(
+                viewModel = viewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
             Screen.HOME -> HomeScreen(
                 viewModel = viewModel,
                 modifier = Modifier.padding(innerPadding)
