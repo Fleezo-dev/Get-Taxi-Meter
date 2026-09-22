@@ -81,6 +81,7 @@ class AuthRepository {
                     "displayName" to "Basheer",
                     "role" to AppRole.MASTER_ADMIN.name,
                     "active" to true,
+                    "accountType" to "MASTER_ADMIN",
                     "createdAt" to FieldValue.serverTimestamp(),
                     "updatedAt" to FieldValue.serverTimestamp()
                 )
