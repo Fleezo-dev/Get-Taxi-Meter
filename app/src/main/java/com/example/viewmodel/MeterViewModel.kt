@@ -12,6 +12,8 @@ import com.example.data.DeviceIdManager
 import com.example.data.DriverProfile
 import com.example.data.DriverProfileRepository
 import com.example.data.TripEntity
+import com.example.data.RideMode
+import com.example.data.RidePricing
 import com.example.model.Tariff
 import com.example.model.TripState
 import com.example.model.TripStatus
@@ -44,6 +46,7 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     private val tariffRepo = TaxiMeterApplication.instance.tariffRepository
     private val driverRepo = TaxiMeterApplication.instance.driverProfileRepository
     private val activationRepo = TaxiMeterApplication.instance.activationRepository
+    private val rideModeRepo = TaxiMeterApplication.instance.rideModeRepository
 
     val tripState: StateFlow<TripState> = TaxiMeterService.tripState
     val isServiceRunning: StateFlow<Boolean> = TaxiMeterService.isServiceRunning
@@ -52,6 +55,9 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     val driverProfile: StateFlow<DriverProfile> = driverRepo.profile
     val isActivated: StateFlow<Boolean> = activationRepo.isActivated
     val activationStatus: StateFlow<String> = activationRepo.activationStatus
+
+    val selectedRideMode: StateFlow<RideMode> = rideModeRepo.selectedMode
+    val ridePricing: StateFlow<RidePricing> = rideModeRepo.pricing
 
     private val _currentScreen = MutableStateFlow(
         if (!driverRepo.profile.value.isRegistered) Screen.DRIVER_PROFILE
@@ -102,6 +108,14 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
                 _recoveredTrip.value = unfinished
             }
         }
+    }
+
+    fun setRideMode(mode: RideMode) {
+        rideModeRepo.setMode(mode)
+    }
+
+    fun saveRidePricing(pricing: RidePricing) {
+        rideModeRepo.savePricing(pricing)
     }
 
     fun startTrip(context: Context) {
