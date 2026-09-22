@@ -84,7 +84,6 @@ fun MainContent(
             Screen.HOME -> {
                 val now = System.currentTimeMillis()
                 if (now - lastBackPressAt < 1800L) {
-                    (viewModel as? Any)
                     (context as? MainActivity)?.finishAndRemoveTask()
                 } else {
                     lastBackPressAt = now
