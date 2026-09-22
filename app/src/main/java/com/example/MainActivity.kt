@@ -1,6 +1,7 @@
 package com.example
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -34,6 +35,8 @@ import com.example.viewmodel.Screen
 
 class MainActivity : ComponentActivity() {
 
+    private var lastBackPressAt = 0L
+
     private val viewModel: MeterViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,9 +64,14 @@ fun MainContent(
 ) {
     val currentScreen by viewModel.currentScreen.collectAsState()
     val tripState by viewModel.tripState.collectAsState()
+    val context = androidx.compose.ui.platform.LocalContext.current
 
     // Safe Back handling: Leaving Live Meter screen does NOT kill the trip!
     BackHandler {
+        if (!viewModel.isActivated.value && currentScreen != Screen.ACTIVATION && currentScreen != Screen.DRIVER_PROFILE) {
+            Toast.makeText(context, "Activation is required to use the meter", Toast.LENGTH_SHORT).show()
+            return@BackHandler
+        }
         when (currentScreen) {
             Screen.LIVE_METER -> {
                 if (tripState.status == TripStatus.ACTIVE || tripState.status == TripStatus.WAITING) {
@@ -73,12 +81,22 @@ fun MainContent(
                     viewModel.navigateTo(Screen.HOME)
                 }
             }
+            Screen.ACTIVATION -> {
+                if (viewModel.isActivated.value) viewModel.navigateTo(Screen.HOME)
+                else Toast.makeText(context, "Activation is required to use the meter", Toast.LENGTH_SHORT).show()
+            }
             Screen.SUMMARY, Screen.HISTORY, Screen.SETTINGS, Screen.BATTERY_GUIDANCE,
-            Screen.SETUP_CHECKLIST, Screen.DRIVER_PROFILE, Screen.ACTIVATION, Screen.ADMIN -> {
+            Screen.SETUP_CHECKLIST, Screen.DRIVER_PROFILE, Screen.ADMIN -> {
                 viewModel.navigateTo(Screen.HOME)
             }
             Screen.HOME -> {
-                onMinimizeApp()
+                val now = System.currentTimeMillis()
+                if (now - lastBackPressAt < 1800L) {
+                    (context as? MainActivity)?.finishAndRemoveTask()
+                } else {
+                    lastBackPressAt = now
+                    Toast.makeText(context, "Press back again to exit", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }

@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -41,6 +42,7 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -92,6 +94,7 @@ fun DriverProfileScreen(
     var vehicleNumber by remember(currentProfile) { mutableStateOf(currentProfile.vehicleNumber) }
     var vehicleType by remember(currentProfile) { mutableStateOf(currentProfile.vehicleType.ifBlank { "Sedan" }) }
     var photoPath by remember(currentProfile) { mutableStateOf(currentProfile.photoPath) }
+    var paymentQrPath by remember { mutableStateOf(viewModel.getPaymentQrPath()) }
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var dropdownExpanded by remember { mutableStateOf(false) }
@@ -99,6 +102,12 @@ fun DriverProfileScreen(
     val vehicleTypes = listOf("Sedan", "Hatchback", "SUV", "Taxi / Cab", "Auto / Rickshaw", "Premium Sedan")
 
     // Image Picker Launcher
+    val qrPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        if (uri != null) paymentQrPath = viewModel.savePaymentQr(uri)
+    }
+
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -357,7 +366,49 @@ fun DriverProfileScreen(
 
                 Spacer(modifier = Modifier.height(18.dp))
 
-                // Save / Complete Button
+                // Driver Payment QR
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppCardBorder)
+        ) {
+            Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.QrCode2, contentDescription = null, tint = BrandRed, modifier = Modifier.size(22.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Driver Payment QR", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Text("This QR will be shown with the final fare and can be included on the invoice.", fontSize = 11.5.sp, color = TextSecondary)
+                Spacer(modifier = Modifier.height(10.dp))
+                if (paymentQrPath != null && File(paymentQrPath!!).exists()) {
+                    val qrBitmap = remember(paymentQrPath) { BitmapFactory.decodeFile(paymentQrPath) }
+                    if (qrBitmap != null) {
+                        Image(
+                            bitmap = qrBitmap.asImageBitmap(),
+                            contentDescription = "Driver payment QR",
+                            modifier = Modifier.size(150.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                OutlinedButton(
+                    onClick = { qrPickerLauncher.launch("image/*") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(contentColor = BrandRed)
+                ) {
+                    Text(if (paymentQrPath == null) "ADD PAYMENT QR" else "CHANGE PAYMENT QR", fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Save / Complete Button
                 Button(
                     onClick = {
                         if (name.isBlank() || mobile.isBlank() || vehicleNumber.isBlank() || vehicleType.isBlank()) {

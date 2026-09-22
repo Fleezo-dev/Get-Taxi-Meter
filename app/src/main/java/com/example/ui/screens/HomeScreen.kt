@@ -14,6 +14,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -102,6 +103,7 @@ fun HomeScreen(
     var showAboutDialog by remember { mutableStateOf(false) }
     var showRecoveredTripDialog by remember { mutableStateOf(recoveredTrip != null) }
     var showRideModeDialog by remember { mutableStateOf(false) }
+    var logoTaps by remember { mutableStateOf(0) }
 
     // Manual Extra Charges Dialog States
     var showAirportDialog by remember { mutableStateOf(false) }
@@ -224,6 +226,7 @@ fun HomeScreen(
         onTariffSettingsClick = { viewModel.navigateTo(Screen.SETTINGS) },
         onTodaySummaryClick = { showTodaySummaryDialog = true },
         onMoreClick = { showMoreMenuDialog = true },
+        onHiddenAdminClick = { viewModel.navigateTo(Screen.ADMIN) },
         isOverlayEnabled = isOverlayActive,
         onToggleOverlay = { enabled ->
             if (enabled) {

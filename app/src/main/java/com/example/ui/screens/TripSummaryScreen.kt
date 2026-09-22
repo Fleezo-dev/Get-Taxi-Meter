@@ -22,6 +22,8 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -33,6 +35,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.TripEntity
+import com.example.service.TripInvoiceManager
 import com.example.service.TaxiMeterService
 import com.example.ui.components.BrandLogo
 import com.example.ui.components.CurvedBrandFooter
@@ -69,6 +75,8 @@ fun TripSummaryScreen(
     val context = LocalContext.current
     val tripState by viewModel.tripState.collectAsState()
     val selectedHistoryTrip by viewModel.selectedHistoryTrip.collectAsState()
+    val driverProfile by viewModel.driverProfile.collectAsState()
+    var pdfUri by remember { mutableStateOf<android.net.Uri?>(null) }
 
     // Either inspect a past completed trip or the just-completed trip
     val isHistoryMode = selectedHistoryTrip != null
@@ -256,6 +264,43 @@ fun TripSummaryScreen(
         }
 
         Spacer(modifier = Modifier.height(18.dp))
+
+        // Premium PDF actions
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Button(
+                onClick = {
+                    pdfUri = TripInvoiceManager.generatePdf(context, targetState, driverProfile, viewModel.getPaymentQrPath())
+                },
+                modifier = Modifier.weight(1f).height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandRed, contentColor = Color.White)
+            ) {
+                Icon(Icons.Default.Save, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Save PDF", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+            OutlinedButton(
+                onClick = {
+                    val uri = pdfUri ?: TripInvoiceManager.generatePdf(context, targetState, driverProfile, viewModel.getPaymentQrPath())
+                    pdfUri = uri
+                    if (uri != null) TripInvoiceManager.sharePdf(context, uri)
+                },
+                modifier = Modifier.weight(1f).height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = BrandRed)
+            ) {
+                Icon(Icons.Default.PictureAsPdf, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("Share PDF", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Action Buttons
         Row(

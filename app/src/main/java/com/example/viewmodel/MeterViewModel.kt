@@ -47,6 +47,7 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     private val driverRepo = TaxiMeterApplication.instance.driverProfileRepository
     private val activationRepo = TaxiMeterApplication.instance.activationRepository
     private val rideModeRepo = TaxiMeterApplication.instance.rideModeRepository
+    private val paymentRepo = TaxiMeterApplication.instance.driverPaymentRepository
 
     val tripState: StateFlow<TripState> = TaxiMeterService.tripState
     val isServiceRunning: StateFlow<Boolean> = TaxiMeterService.isServiceRunning
@@ -58,10 +59,11 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
 
     val selectedRideMode: StateFlow<RideMode> = rideModeRepo.selectedMode
     val ridePricing: StateFlow<RidePricing> = rideModeRepo.pricing
+    val driverPaymentQrPath: StateFlow<String?> = kotlinx.coroutines.flow.MutableStateFlow(paymentRepo.getQrPath())
 
     private val _currentScreen = MutableStateFlow(
         if (!driverRepo.profile.value.isRegistered) Screen.DRIVER_PROFILE
-        else if (!activationRepo.isActivated.value) Screen.SETUP_CHECKLIST
+        else if (!activationRepo.isActivated.value) Screen.ACTIVATION
         else Screen.HOME
     )
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
@@ -178,7 +180,7 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
         val success = driverRepo.saveProfile(name, mobileNumber, vehicleNumber, vehicleType, photoPath)
         if (success) {
             if (!isActivated.value) {
-                _currentScreen.value = Screen.SETUP_CHECKLIST
+                _currentScreen.value = Screen.ACTIVATION
             } else {
                 _currentScreen.value = Screen.HOME
             }
@@ -189,6 +191,18 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     fun saveProfilePhoto(uri: android.net.Uri): String? {
         return driverRepo.saveImageToInternalStorage(uri)
     }
+
+    fun savePaymentQr(uri: android.net.Uri): String? {
+        val path = driverRepo.saveImageToInternalStorage(uri)?.let { source ->
+            val target = java.io.File(getApplication<Application>().filesDir, "driver_payment_qr.png")
+            java.io.File(source).copyTo(target, overwrite = true)
+            target.absolutePath
+        }
+        if (path != null) paymentRepo.saveQrPath(path)
+        return path
+    }
+
+    fun getPaymentQrPath(): String? = paymentRepo.getQrPath()
 
     suspend fun activateDevice(activationCode: String): ActivationResult {
         val context = getApplication<Application>()

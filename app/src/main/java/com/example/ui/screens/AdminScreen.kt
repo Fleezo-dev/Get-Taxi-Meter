@@ -208,7 +208,7 @@ fun AdminScreen(
 
                     Button(
                         onClick = {
-                            if (pinInput == "1981") {
+                            if (pinInput == "140423") {
                                 isAuthenticated = true
                                 pinError = null
                             } else {
