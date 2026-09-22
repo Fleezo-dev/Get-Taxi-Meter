@@ -63,7 +63,7 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _currentScreen = MutableStateFlow(
         if (!driverRepo.profile.value.isRegistered) Screen.DRIVER_PROFILE
-        else if (!activationRepo.isActivated.value) Screen.SETUP_CHECKLIST
+        else if (!activationRepo.isActivated.value) Screen.ACTIVATION
         else Screen.HOME
     )
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
