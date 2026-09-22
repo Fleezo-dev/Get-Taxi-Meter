@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.os.Build
 import com.example.data.AppDatabase
 import com.example.data.TariffRepository
+import com.example.data.RideModeRepository
 
 class TaxiMeterApplication : Application() {
 
@@ -13,6 +14,9 @@ class TaxiMeterApplication : Application() {
         private set
 
     lateinit var tariffRepository: TariffRepository
+        private set
+
+    lateinit var rideModeRepository: RideModeRepository
         private set
 
     lateinit var driverProfileRepository: com.example.data.DriverProfileRepository
@@ -26,6 +30,7 @@ class TaxiMeterApplication : Application() {
         instance = this
         database = AppDatabase.getInstance(this)
         tariffRepository = TariffRepository(this)
+        rideModeRepository = RideModeRepository(this)
         driverProfileRepository = com.example.data.DriverProfileRepository(this)
         activationRepository = com.example.data.ActivationRepository(this)
         createNotificationChannel()
