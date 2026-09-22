@@ -19,6 +19,7 @@ import com.example.ui.components.BrandLogo
 import com.example.ui.theme.*
 import com.example.viewmodel.MeterViewModel
 
+// Firebase-backed sign-in screen. The authenticated profile is loaded by MeterViewModel.
 @Composable
 fun AuthScreen(viewModel: MeterViewModel, modifier: Modifier = Modifier) {
     val authError by viewModel.authError.collectAsState()
