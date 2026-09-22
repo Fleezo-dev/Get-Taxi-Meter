@@ -8,6 +8,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -34,8 +37,6 @@ import com.example.viewmodel.MeterViewModel
 import com.example.viewmodel.Screen
 
 class MainActivity : ComponentActivity() {
-
-    private var lastBackPressAt = 0L
 
     private val viewModel: MeterViewModel by viewModels()
 
@@ -65,6 +66,7 @@ fun MainContent(
     val currentScreen by viewModel.currentScreen.collectAsState()
     val tripState by viewModel.tripState.collectAsState()
     val context = androidx.compose.ui.platform.LocalContext.current
+    var lastBackPressAt by remember { mutableStateOf(0L) }
 
     // Safe Back handling: Leaving Live Meter screen does NOT kill the trip!
     BackHandler {
