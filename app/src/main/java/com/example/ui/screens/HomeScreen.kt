@@ -226,6 +226,7 @@ fun HomeScreen(
         onTariffSettingsClick = { viewModel.navigateTo(Screen.SETTINGS) },
         onTodaySummaryClick = { showTodaySummaryDialog = true },
         onMoreClick = { showMoreMenuDialog = true },
+        onHiddenAdminClick = { viewModel.navigateTo(Screen.ADMIN) },
         isOverlayEnabled = isOverlayActive,
         onToggleOverlay = { enabled ->
             if (enabled) {
