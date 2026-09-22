@@ -46,6 +46,10 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -113,10 +117,13 @@ fun CompactMeterDashboard(
     onTariffSettingsClick: () -> Unit,
     onTodaySummaryClick: () -> Unit,
     onMoreClick: () -> Unit,
+    onHiddenAdminClick: () -> Unit,
     isOverlayEnabled: Boolean = false,
     onToggleOverlay: ((Boolean) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    var logoTaps by remember { mutableStateOf(0) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -155,7 +162,16 @@ fun CompactMeterDashboard(
                     modifier = Modifier
                         .size(72.dp)
                         .padding(vertical = 2.dp)
-                        .combinedClickable(onClick = onMenuClick, onLongClick = { onMenuClick() }),
+                        .combinedClickable(
+                            onClick = {
+                                logoTaps += 1
+                                if (logoTaps >= 5) {
+                                    logoTaps = 0
+                                    onHiddenAdminClick()
+                                }
+                            },
+                            onLongClick = { logoTaps = 0 }
+                        ),
                     contentScale = ContentScale.Fit
                 )
 
