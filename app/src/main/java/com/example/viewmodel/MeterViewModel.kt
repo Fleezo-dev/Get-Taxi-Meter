@@ -130,9 +130,16 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun nextAuthenticatedScreen(): Screen {
-        return if (!driverRepo.profile.value.isRegistered) Screen.DRIVER_PROFILE
-        else if (!activationRepo.isActivated.value) Screen.ACTIVATION
-        else Screen.HOME
+        // Driver profile is only required for DRIVER accounts.
+        // Admin accounts can proceed directly to device activation.
+        val role = _authProfile.value?.role
+        if (role == AppRole.DRIVER && !driverRepo.profile.value.isRegistered) {
+            return Screen.DRIVER_PROFILE
+        }
+        if (!activationRepo.isActivated.value) {
+            return Screen.ACTIVATION
+        }
+        return Screen.HOME
     }
 
     fun signIn(email: String, password: String) {
