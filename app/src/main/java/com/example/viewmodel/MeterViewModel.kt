@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.TaxiMeterApplication
 import com.example.data.ActivationRepository
 import com.example.data.ActivationResult
+import com.example.data.AppRole
+import com.example.data.AuthProfile
+import com.example.data.AuthRepository
 import com.example.data.DeviceActivationRecord
 import com.example.data.DeviceIdManager
 import com.example.data.DriverProfile
@@ -28,6 +31,7 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 enum class Screen {
+    AUTH,
     HOME,
     LIVE_METER,
     SUMMARY,
@@ -48,6 +52,14 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     private val activationRepo = TaxiMeterApplication.instance.activationRepository
     private val rideModeRepo = TaxiMeterApplication.instance.rideModeRepository
     private val paymentRepo = TaxiMeterApplication.instance.driverPaymentRepository
+    private val authRepo = AuthRepository()
+
+    private val _authProfile = MutableStateFlow<AuthProfile?>(null)
+    val authProfile: StateFlow<AuthProfile?> = _authProfile.asStateFlow()
+    private val _authLoading = MutableStateFlow(false)
+    val authLoading: StateFlow<Boolean> = _authLoading.asStateFlow()
+    private val _authError = MutableStateFlow<String?>(null)
+    val authError: StateFlow<String?> = _authError.asStateFlow()
 
     val tripState: StateFlow<TripState> = TaxiMeterService.tripState
     val isServiceRunning: StateFlow<Boolean> = TaxiMeterService.isServiceRunning
@@ -62,9 +74,7 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     val driverPaymentQrPath: StateFlow<String?> = kotlinx.coroutines.flow.MutableStateFlow(paymentRepo.getQrPath())
 
     private val _currentScreen = MutableStateFlow(
-        if (!driverRepo.profile.value.isRegistered) Screen.DRIVER_PROFILE
-        else if (!activationRepo.isActivated.value) Screen.ACTIVATION
-        else Screen.HOME
+        if (authRepo.isSignedIn()) nextAuthenticatedScreen() else Screen.AUTH
     )
     val currentScreen: StateFlow<Screen> = _currentScreen.asStateFlow()
 
@@ -94,8 +104,64 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     init {
+        viewModelScope.launch { initializeAuth() }
         checkForUnfinishedTrip()
     }
+
+    private suspend fun initializeAuth() {
+        if (!authRepo.isSignedIn()) {
+            _currentScreen.value = Screen.AUTH
+            return
+        }
+        _authLoading.value = true
+        when (val result = authRepo.loadOrBootstrapProfile()) {
+            is com.example.data.AuthResult.Success -> {
+                _authProfile.value = result.profile
+                _authError.value = null
+                _currentScreen.value = nextAuthenticatedScreen()
+            }
+            is com.example.data.AuthResult.Error -> {
+                _authProfile.value = null
+                _authError.value = result.message
+                _currentScreen.value = Screen.AUTH
+            }
+        }
+        _authLoading.value = false
+    }
+
+    private fun nextAuthenticatedScreen(): Screen {
+        return if (!driverRepo.profile.value.isRegistered) Screen.DRIVER_PROFILE
+        else if (!activationRepo.isActivated.value) Screen.ACTIVATION
+        else Screen.HOME
+    }
+
+    fun signIn(email: String, password: String) {
+        viewModelScope.launch {
+            _authLoading.value = true
+            _authError.value = null
+            when (val result = authRepo.signIn(email, password)) {
+                is com.example.data.AuthResult.Success -> {
+                    _authProfile.value = result.profile
+                    _currentScreen.value = nextAuthenticatedScreen()
+                }
+                is com.example.data.AuthResult.Error -> {
+                    _authProfile.value = null
+                    _authError.value = result.message
+                }
+            }
+            _authLoading.value = false
+        }
+    }
+
+    fun signOut() {
+        authRepo.signOut()
+        _authProfile.value = null
+        _currentScreen.value = Screen.AUTH
+    }
+
+    fun clearAuthError() { _authError.value = null }
+
+    fun hasRole(role: AppRole): Boolean = _authProfile.value?.role == role
 
     fun checkForUnfinishedTrip() {
         viewModelScope.launch(Dispatchers.IO) {
