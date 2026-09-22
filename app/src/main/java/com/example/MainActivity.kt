@@ -68,6 +68,10 @@ fun MainContent(
 
     // Safe Back handling: Leaving Live Meter screen does NOT kill the trip!
     BackHandler {
+        if (!viewModel.isActivated.value && currentScreen != Screen.ACTIVATION && currentScreen != Screen.DRIVER_PROFILE) {
+            Toast.makeText(context, "Activation is required to use the meter", Toast.LENGTH_SHORT).show()
+            return@BackHandler
+        }
         when (currentScreen) {
             Screen.LIVE_METER -> {
                 if (tripState.status == TripStatus.ACTIVE || tripState.status == TripStatus.WAITING) {
