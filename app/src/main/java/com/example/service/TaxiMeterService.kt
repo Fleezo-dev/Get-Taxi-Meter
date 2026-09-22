@@ -17,6 +17,7 @@ import com.example.MainActivity
 import com.example.R
 import com.example.TaxiMeterApplication
 import com.example.data.TripEntity
+import com.example.data.RideMode
 import com.example.engine.MeterEngine
 import com.example.model.ExtraCharge
 import com.example.model.Tariff
@@ -69,7 +70,34 @@ class TaxiMeterService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START_TRIP -> {
-                val tariff = TaxiMeterApplication.instance.tariffRepository.loadTariff()
+                val app = TaxiMeterApplication.instance
+                val cityTariff = app.tariffRepository.loadTariff()
+                val pricing = app.rideModeRepository.pricing.value
+                val tariff = when (app.rideModeRepository.selectedMode.value) {
+                    RideMode.CITY_RIDE -> cityTariff
+                    RideMode.HOURLY_RENTAL -> cityTariff.copy(
+                        id = "hourly_rental",
+                        name = "Hourly Rental",
+                        baseFare = pricing.hourlyRate,
+                        minimumFare = 0.0,
+                        distanceRatePerKm = pricing.hourlyExtraKmRate,
+                        waitingRatePerMinute = 0.0,
+                        freeDistanceKm = pricing.hourlyFreeKm,
+                        freeWaitingMinutes = 0.0,
+                        nightSurchargeMultiplier = 1.0
+                    )
+                    RideMode.OUTSTATION -> cityTariff.copy(
+                        id = "outstation",
+                        name = "Outstation",
+                        baseFare = pricing.outstationDriverBata,
+                        minimumFare = 0.0,
+                        distanceRatePerKm = pricing.outstationPerKmRate,
+                        waitingRatePerMinute = 0.0,
+                        freeDistanceKm = 0.0,
+                        freeWaitingMinutes = 0.0,
+                        nightSurchargeMultiplier = 1.0
+                    )
+                }
                 startTripInternal(tariff)
             }
             ACTION_RESUME_RECOVERED -> {
@@ -116,7 +144,7 @@ class TaxiMeterService : Service() {
     @SuppressLint("MissingPermission")
     private fun startTripInternal(tariff: Tariff) {
         val now = System.currentTimeMillis()
-        val initialBreakdown = MeterEngine.calculateFare(0.0, 0L, emptyList(), tariff)
+        val initialBreakdown = MeterEngine.calculateFare(0.0, 0L, emptyList(), tariff, 0L)
 
         val initialState = TripState(
             tripId = 0L,
@@ -302,7 +330,8 @@ class TaxiMeterService : Service() {
                 distanceMeters = newTotalDistance,
                 waitingDurationSeconds = currentVal.waitingDurationSeconds,
                 extras = currentVal.extras,
-                tariff = currentVal.tariff
+                tariff = currentVal.tariff,
+                tripDurationSeconds = currentVal.tripDurationSeconds
             )
 
             val gpsDesc = if (accuracy <= 10f) {
@@ -362,7 +391,8 @@ class TaxiMeterService : Service() {
                     distanceMeters = currentVal.totalDistanceMeters,
                     waitingDurationSeconds = newWaitingDuration,
                     extras = currentVal.extras,
-                    tariff = currentVal.tariff
+                    tariff = currentVal.tariff,
+                    tripDurationSeconds = newTripDuration
                 )
 
                 val updatedState = currentVal.copy(
