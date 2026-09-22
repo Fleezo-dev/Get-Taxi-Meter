@@ -21,7 +21,6 @@ service cloud.firestore {
         && (
           (
             request.auth.uid == userId
-            && request.auth.token.email_verified == true
             && request.auth.token.email.lower() == "basheer222@gmail.com"
             && request.resource.data.role == "MASTER_ADMIN"
           )
