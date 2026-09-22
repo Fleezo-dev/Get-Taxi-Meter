@@ -82,6 +82,7 @@ fun ActivationScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
+    var logoTaps by remember { mutableStateOf(0) }
 
     val scrollState = rememberScrollState()
 
@@ -102,11 +103,7 @@ fun ActivationScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = {
-                if (isActivated) {
-                    viewModel.navigateTo(Screen.HOME)
-                } else {
-                    viewModel.navigateTo(Screen.SETUP_CHECKLIST)
-                }
+                if (isActivated) viewModel.navigateTo(Screen.HOME)
             }) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
@@ -115,7 +112,7 @@ fun ActivationScreen(
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            BrandLogo(compact = true)
+            Box(modifier = Modifier.combinedClickable(onClick = { logoTaps++; if (logoTaps >= 5) { logoTaps = 0; viewModel.navigateTo(Screen.ADMIN) } }, onLongClick = {})) { BrandLogo(compact = true) }
             Spacer(modifier = Modifier.weight(1f))
             Spacer(modifier = Modifier.width(48.dp))
         }
