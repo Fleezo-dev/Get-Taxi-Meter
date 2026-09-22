@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -153,7 +154,8 @@ fun CompactMeterDashboard(
                     contentDescription = "Get Taxi Meter Logo",
                     modifier = Modifier
                         .size(72.dp)
-                        .padding(vertical = 2.dp),
+                        .padding(vertical = 2.dp)
+                        .combinedClickable(onClick = onMenuClick, onLongClick = { onMenuClick() }),
                     contentScale = ContentScale.Fit
                 )
 
