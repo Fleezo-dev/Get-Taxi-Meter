@@ -180,7 +180,7 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
         val success = driverRepo.saveProfile(name, mobileNumber, vehicleNumber, vehicleType, photoPath)
         if (success) {
             if (!isActivated.value) {
-                _currentScreen.value = Screen.SETUP_CHECKLIST
+                _currentScreen.value = Screen.ACTIVATION
             } else {
                 _currentScreen.value = Screen.HOME
             }
