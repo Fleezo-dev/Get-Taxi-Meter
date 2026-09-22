@@ -21,9 +21,63 @@ object MeterEngine {
         distanceMeters: Double,
         waitingDurationSeconds: Long,
         extras: List<ExtraCharge>,
-        tariff: Tariff
+        tariff: Tariff,
+        tripDurationSeconds: Long = 0L
     ): MeterBreakdown {
         val totalDistanceKm = distanceMeters / 1000.0
+        val extraChargesTotal = extras.sumOf { it.amount }
+
+        if (tariff.id == "hourly_rental") {
+            // Hourly rental: each started hour is billed at the configured hourly rate.
+            // freeDistanceKm stores the free kilometres PER HOUR and distanceRatePerKm
+            // stores the additional-km rate.
+            val billedHours = max(1L, ceil(tripDurationSeconds / 3600.0).toLong())
+            val includedKm = tariff.freeDistanceKm * billedHours
+            val chargeableDistanceKm = max(0.0, totalDistanceKm - includedKm)
+            val distanceFare = chargeableDistanceKm * tariff.distanceRatePerKm
+            val hourlyFare = billedHours * tariff.baseFare
+            val meterFare = applyRounding(hourlyFare + distanceFare, tariff.fareRounding)
+            val totalFare = meterFare + extraChargesTotal
+
+            return MeterBreakdown(
+                baseFare = hourlyFare,
+                totalDistanceKm = totalDistanceKm,
+                chargeableDistanceKm = chargeableDistanceKm,
+                distanceFare = distanceFare,
+                totalWaitingMinutes = 0.0,
+                chargeableWaitingMinutes = 0.0,
+                waitingFare = 0.0,
+                subtotalBeforeMin = hourlyFare + distanceFare,
+                minFareApplied = false,
+                meterFare = meterFare,
+                extraChargesTotal = extraChargesTotal,
+                totalFare = totalFare
+            )
+        }
+
+        if (tariff.id == "outstation") {
+            // Outstation: Driver Bata/Base Fare + per-km rate. No city-meter waiting charge.
+            val chargeableDistanceKm = max(0.0, totalDistanceKm - tariff.freeDistanceKm)
+            val distanceFare = chargeableDistanceKm * tariff.distanceRatePerKm
+            val meterFare = applyRounding(tariff.baseFare + distanceFare, tariff.fareRounding)
+            val totalFare = meterFare + extraChargesTotal
+
+            return MeterBreakdown(
+                baseFare = tariff.baseFare,
+                totalDistanceKm = totalDistanceKm,
+                chargeableDistanceKm = chargeableDistanceKm,
+                distanceFare = distanceFare,
+                totalWaitingMinutes = 0.0,
+                chargeableWaitingMinutes = 0.0,
+                waitingFare = 0.0,
+                subtotalBeforeMin = tariff.baseFare + distanceFare,
+                minFareApplied = false,
+                meterFare = meterFare,
+                extraChargesTotal = extraChargesTotal,
+                totalFare = totalFare
+            )
+        }
+
         val chargeableDistanceKm = max(0.0, totalDistanceKm - tariff.freeDistanceKm)
         val rawDistanceFare = chargeableDistanceKm * tariff.distanceRatePerKm
 
@@ -36,8 +90,6 @@ object MeterEngine {
         val meterFareBeforeRounding = max(subtotal, tariff.minimumFare)
 
         val roundedMeterFare = applyRounding(meterFareBeforeRounding, tariff.fareRounding)
-
-        val extraChargesTotal = extras.sumOf { it.amount }
         val finalTotalFare = roundedMeterFare + extraChargesTotal
 
         return MeterBreakdown(
@@ -55,7 +107,6 @@ object MeterEngine {
             totalFare = finalTotalFare
         )
     }
-
     /**
      * Applies the configured rounding rule to the meter fare.
      */
