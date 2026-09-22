@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMasterAdmin() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "MASTER_ADMIN";
+    }
+
+    match /users/{userId} {
+      allow get: if signedIn() && (request.auth.uid == userId || isMasterAdmin());
+      allow list: if isMasterAdmin();
+
+      allow create: if signedIn()
+        && (
+          (
+            request.auth.uid == userId
+            && request.auth.token.email_verified == true
+            && request.auth.token.email.lower() == "basheer222@gmail.com"
+            && request.resource.data.role == "MASTER_ADMIN"
+          )
+          || isMasterAdmin()
+        );
+
+      allow update: if isMasterAdmin()
+        || (
+          signedIn()
+          && request.auth.uid == userId
+          && request.resource.data.role == resource.data.role
+        );
+
+      allow delete: if isMasterAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
