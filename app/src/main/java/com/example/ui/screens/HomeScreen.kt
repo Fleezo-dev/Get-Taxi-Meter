@@ -98,6 +98,7 @@ fun HomeScreen(
 
     var showTodaySummaryDialog by remember { mutableStateOf(false) }
     var showMoreMenuDialog by remember { mutableStateOf(false) }
+    var showAboutDialog by remember { mutableStateOf(false) }
     var showRecoveredTripDialog by remember { mutableStateOf(recoveredTrip != null) }
 
     // Manual Extra Charges Dialog States
@@ -317,6 +318,58 @@ fun HomeScreen(
                     colors = ButtonDefaults.outlinedButtonColors(contentColor = TextSecondary)
                 ) {
                     Text("Discard")
+                }
+            }
+        )
+    }
+
+
+    // ABOUT & CREDITS
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            containerColor = Color.White,
+            title = {
+                Text(
+                    text = "About Get Taxi Meter",
+                    color = Color.Black,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = "Get Taxi Kovai®",
+                        color = BrandRed,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "App created by Basheer",
+                        color = Color(0xFF0F172A),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "Habib Ad Management Service, Coimbatore",
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = "Contact: 9043743777",
+                        color = TextSecondary,
+                        fontSize = 12.sp
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showAboutDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandRed, contentColor = Color.White),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Close", fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -649,7 +702,37 @@ fun HomeScreen(
                         }
                     }
 
-                    // 9. Share App
+                    // 9. About & Credits
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                showAboutDialog = true
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(BrandRed.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.HelpOutline, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("About & Credits", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Get Taxi Kovai® • App created by Basheer", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 10. Share App
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
