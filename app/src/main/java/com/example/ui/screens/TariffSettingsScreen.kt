@@ -51,6 +51,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.model.FareRounding
+import com.example.data.RidePricing
 import com.example.ui.theme.AppCardBorder
 import com.example.ui.theme.AppCardSecondary
 import com.example.ui.theme.AppWhiteBg
@@ -80,6 +81,13 @@ fun TariffSettingsScreen(
     var freeWaitingText by remember(currentTariff) { mutableStateOf(currentTariff.freeWaitingMinutes.toString()) }
     var speedThresholdText by remember(currentTariff) { mutableStateOf(currentTariff.waitingSpeedThresholdKmH.toString()) }
     var selectedRounding by remember(currentTariff) { mutableStateOf(currentTariff.fareRounding) }
+
+    val ridePricing by viewModel.ridePricing.collectAsState()
+    var hourlyRateText by remember(ridePricing) { mutableStateOf(ridePricing.hourlyRate.toString()) }
+    var hourlyFreeKmText by remember(ridePricing) { mutableStateOf(ridePricing.hourlyFreeKm.toString()) }
+    var hourlyExtraKmRateText by remember(ridePricing) { mutableStateOf(ridePricing.hourlyExtraKmRate.toString()) }
+    var outstationDriverBataText by remember(ridePricing) { mutableStateOf(ridePricing.outstationDriverBata.toString()) }
+    var outstationPerKmRateText by remember(ridePricing) { mutableStateOf(ridePricing.outstationPerKmRate.toString()) }
 
     val scrollState = rememberScrollState()
 
@@ -243,6 +251,87 @@ fun TariffSettingsScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, AppCardBorder, RoundedCornerShape(14.dp)),
+                colors = CardDefaults.cardColors(containerColor = AppWhiteBg),
+                shape = RoundedCornerShape(14.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text(
+                        text = "HOURLY RENTAL",
+                        color = BrandRed,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        TariffInputField(
+                            label = "Per Hour (₹)",
+                            value = hourlyRateText,
+                            onValueChange = { hourlyRateText = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                        TariffInputField(
+                            label = "Free Km / Hour",
+                            value = hourlyFreeKmText,
+                            onValueChange = { hourlyFreeKmText = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    TariffInputField(
+                        label = "Additional Km (₹/km)",
+                        value = hourlyExtraKmRateText,
+                        onValueChange = { hourlyExtraKmRateText = it }
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "OUTSTATION",
+                        color = BrandRed,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        TariffInputField(
+                            label = "Driver Bata / Base Fare (₹)",
+                            value = outstationDriverBataText,
+                            onValueChange = { outstationDriverBataText = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                        TariffInputField(
+                            label = "Per Km (₹/km)",
+                            value = outstationPerKmRateText,
+                            onValueChange = { outstationPerKmRateText = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Text(
+                        text = "City Ride uses the normal tariff above. Drivers choose City Ride, Hourly Rental, or Outstation before starting each trip.",
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
             Button(
                 onClick = {
                     val base = baseFareText.toDoubleOrNull() ?: 50.0
@@ -266,7 +355,16 @@ fun TariffSettingsScreen(
                     )
 
                     viewModel.saveTariff(updatedTariff)
-                    Toast.makeText(context, "Tariff saved successfully", Toast.LENGTH_SHORT).show()
+                    viewModel.saveRidePricing(
+                        RidePricing(
+                            hourlyRate = hourlyRateText.toDoubleOrNull() ?: 350.0,
+                            hourlyFreeKm = hourlyFreeKmText.toDoubleOrNull() ?: 10.0,
+                            hourlyExtraKmRate = hourlyExtraKmRateText.toDoubleOrNull() ?: 20.0,
+                            outstationDriverBata = outstationDriverBataText.toDoubleOrNull() ?: 300.0,
+                            outstationPerKmRate = outstationPerKmRateText.toDoubleOrNull() ?: 16.0
+                        )
+                    )
+                    Toast.makeText(context, "All tariff settings saved successfully", Toast.LENGTH_SHORT).show()
                     viewModel.navigateTo(Screen.HOME)
                 },
                 modifier = Modifier
