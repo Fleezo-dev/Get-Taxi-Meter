@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "905902052873",
+    "project_id": "get-taxi-meter-productio-b0cea",
+    "storage_bucket": "get-taxi-meter-productio-b0cea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:905902052873:android:1bf6d3ea58532b9ab04ad8",
+        "android_client_info": {
+          "package_name": "com.gettaxikovai.meter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBlIP8gbiRcjVN1kFnyxXu_eSvcuNJFnE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
