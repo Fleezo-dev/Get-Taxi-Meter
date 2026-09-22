@@ -69,6 +69,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.example.R
+import com.example.data.RideMode
 import com.example.model.TripStatus
 import com.example.service.FloatingOverlayManager
 import com.example.service.TaxiMeterService
@@ -100,6 +101,7 @@ fun HomeScreen(
     var showMoreMenuDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showRecoveredTripDialog by remember { mutableStateOf(recoveredTrip != null) }
+    var showRideModeDialog by remember { mutableStateOf(false) }
 
     // Manual Extra Charges Dialog States
     var showAirportDialog by remember { mutableStateOf(false) }
@@ -144,7 +146,7 @@ fun HomeScreen(
         }
     }
 
-    val onStartTripClick = {
+    val startTripForSelectedMode = {
         val fineLocationGranted = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -169,6 +171,10 @@ fun HomeScreen(
             }
             permissionLauncher.launch(permissions.toTypedArray())
         }
+    }
+
+    val onStartTripClick = {
+        showRideModeDialog = true
     }
 
     val isTripActive = tripState.status == TripStatus.ACTIVE || tripState.status == TripStatus.WAITING
@@ -240,6 +246,51 @@ fun HomeScreen(
         },
         modifier = modifier
     )
+
+    // RIDE MODE SELECTION
+    if (showRideModeDialog) {
+        AlertDialog(
+            onDismissRequest = { showRideModeDialog = false },
+            containerColor = Color.White,
+            title = {
+                Text(
+                    text = "Select Ride Type",
+                    color = Color.Black,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Choose the tariff for this trip before starting the meter.",
+                        color = TextSecondary,
+                        fontSize = 13.sp
+                    )
+                    listOf(
+                        RideMode.CITY_RIDE to "City Ride",
+                        RideMode.HOURLY_RENTAL to "Hourly Rental",
+                        RideMode.OUTSTATION to "Outstation"
+                    ).forEach { (mode, label) ->
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.setRideMode(mode)
+                                showRideModeDialog = false
+                                startTripForSelectedMode()
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                contentColor = if (viewModel.selectedRideMode.value == mode) BrandRed else Color.Black
+                            )
+                        ) {
+                            Text(label, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            },
+            confirmButton = {}
+        )
+    }
 
     // MANUAL CHARGES DIALOGS
     if (showAirportDialog) {
