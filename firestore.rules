@@ -125,6 +125,20 @@ service cloud.firestore {
       allow delete: if isMasterAdmin();
     }
 
+    match /completed_trips/{tripId} {
+      allow create: if signedIn()
+        && request.auth.token.firebase.sign_in_provider == "anonymous"
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.status == "COMPLETED";
+      allow get, list: if isMasterAdmin()
+        || (
+          signedIn()
+          && request.auth.token.firebase.sign_in_provider == "anonymous"
+          && resource.data.ownerUid == request.auth.uid
+        );
+      allow update, delete: if isMasterAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
