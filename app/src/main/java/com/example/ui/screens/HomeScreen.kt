@@ -353,8 +353,7 @@ fun HomeScreen(
             containerColor = Color.White,
             title = {
                 Text(
-                    text = if (loadedTrip == null) "LOAD TRIP",
-                    else "TRIP READY",
+                    text = if (loadedTrip == null) "LOAD TRIP" else "TRIP READY",
                     color = Color.Black,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
