@@ -38,6 +38,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.VpnKey
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -46,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -170,8 +172,94 @@ fun SetupChecklistScreen(
         refreshChecks()
     }
 
+    // Android may block overlay access for sideloaded apps behind the
+    // "Allow restricted settings" security step. Keep the driver in a
+    // guided flow instead of expecting them to discover that setting.
+    var showOverlayGuide by remember { mutableStateOf(false) }
+    var restrictedSettingsStepOpened by remember { mutableStateOf(false) }
+
+    fun openAppDetailsSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", context.packageName, null)
+        }
+        context.startActivity(intent)
+        restrictedSettingsStepOpened = true
+    }
+
+    fun openOverlaySettings() {
+        val intent = Intent(
+            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+            Uri.parse("package:" + context.packageName)
+        )
+        context.startActivity(intent)
+    }
+
     val scrollState = rememberScrollState()
 
+    if (showOverlayGuide) {
+        AlertDialog(
+            onDismissRequest = { showOverlayGuide = false },
+            title = {
+                Text(
+                    text = "Floating Meter Setup",
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Android may protect this permission when the app was installed outside Google Play.",
+                        color = TextSecondary,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "If Android shows a blocked or restricted setting, follow these simple steps:",
+                        color = TextPrimary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp
+                    )
+                    Text(
+                        text = "1. Open Get Taxi Meter in Android App Settings.\n" +
+                            "2. Tap the three-dot menu in the top-right.\n" +
+                            "3. Tap Allow restricted settings, if shown.\n" +
+                            "4. Come back here and open Display over other apps.",
+                        color = TextSecondary,
+                        fontSize = 13.sp,
+                        lineHeight = 19.sp
+                    )
+                    Text(
+                        text = "You only need to do this once on this phone.",
+                        color = BrandRed,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (!restrictedSettingsStepOpened) {
+                            openAppDetailsSettings()
+                        } else {
+                            openOverlaySettings()
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
+                ) {
+                    Text(
+                        text = if (!restrictedSettingsStepOpened) "OPEN APP SETTINGS" else "OPEN OVERLAY SETTINGS",
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showOverlayGuide = false }) {
+                    Text("CLOSE", color = TextSecondary)
+                }
+            }
+        )
+    }
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -298,16 +386,17 @@ fun SetupChecklistScreen(
             ChecklistItemCard(
                 icon = Icons.Default.Layers,
                 title = "5. Display Over Other Apps",
-                description = if (canDrawOverlay) "Floating meter overlay enabled" else "Allows floating live fare widget while using navigation apps",
+                description = if (canDrawOverlay) "Floating meter overlay enabled" else "Floating meter may require one Android security step",
                 isCompleted = canDrawOverlay,
-                actionLabel = "ENABLE",
+                actionLabel = if (canDrawOverlay) "VIEW" else "SET UP",
                 onAction = {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                        val intent = Intent(
-                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                            Uri.parse("package:${context.packageName}")
-                        )
-                        context.startActivity(intent)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            restrictedSettingsStepOpened = false
+                            showOverlayGuide = true
+                        } else {
+                            openOverlaySettings()
+                        }
                     }
                 }
             )
