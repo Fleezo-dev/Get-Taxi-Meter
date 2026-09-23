@@ -1,7 +1,6 @@
 package com.example.data
 
 import com.example.BuildConfig
-import com.google.firebase.Timestamp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
@@ -37,6 +36,11 @@ class InstallationRepository {
      * Driver/test devices use Firebase anonymous authentication so they can report
      * first-seen/last-seen information without exposing the administrator's login.
      * If the Master Admin is already signed in, that authenticated session is reused.
+     *
+     * Important: do not read the document before writing. Anonymous driver sessions
+     * are intentionally not granted a general read permission for installation
+     * documents. The write path therefore uses create-first, then update when the
+     * document already exists.
      */
     suspend fun registerOrUpdate(
         deviceId: String,
@@ -51,9 +55,8 @@ class InstallationRepository {
             requireNotNull(user) { "Unable to create installation authentication session" }
 
             val ref = firestore.collection(COLLECTION).document(deviceId)
-            val snapshot = ref.get().await()
 
-            val data = hashMapOf<String, Any>(
+            val baseData = hashMapOf<String, Any>(
                 "deviceId" to deviceId,
                 "ownerUid" to user.uid,
                 "activationStatus" to activationStatus,
@@ -66,11 +69,15 @@ class InstallationRepository {
                 "platform" to "Android"
             )
 
-            if (!snapshot.exists()) {
-                data["firstSeenAt"] = FieldValue.serverTimestamp()
+            try {
+                val createData = HashMap(baseData)
+                createData["firstSeenAt"] = FieldValue.serverTimestamp()
+                ref.set(createData).await()
+            } catch (createError: Exception) {
+                // A document for this device already exists. Update is permitted
+                // only when the existing record belongs to this authenticated device.
+                ref.set(baseData, SetOptions.merge()).await()
             }
-
-            ref.set(data, SetOptions.merge()).await()
         }
     }
 
