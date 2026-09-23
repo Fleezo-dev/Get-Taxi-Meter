@@ -212,85 +212,6 @@ fun TariffSettingsScreen(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Text(
-                        text = "Fare Rounding Policy",
-                        color = Color.Black,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        RoundingChip(
-                            label = "Exact",
-                            selected = selectedRounding == FareRounding.EXACT,
-                            onClick = { selectedRounding = FareRounding.EXACT },
-                            modifier = Modifier.weight(1f)
-                        )
-                        RoundingChip(
-                            label = "₹1 Round",
-                            selected = selectedRounding == FareRounding.NEAREST_ONE,
-                            onClick = { selectedRounding = FareRounding.NEAREST_ONE },
-                            modifier = Modifier.weight(1f)
-                        )
-                        RoundingChip(
-                            label = "₹5 Round",
-                            selected = selectedRounding == FareRounding.NEAREST_FIVE,
-                            onClick = { selectedRounding = FareRounding.NEAREST_FIVE },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(1.dp, AppCardBorder, RoundedCornerShape(14.dp)),
-                colors = CardDefaults.cardColors(containerColor = AppWhiteBg),
-                shape = RoundedCornerShape(14.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
-                ) {
-                    Text(
-                        text = "HOURLY RENTAL",
-                        color = BrandRed,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = 1.sp
-                    )
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        TariffInputField(
-                            label = "Per Hour (₹)",
-                            value = hourlyRateText,
-                            onValueChange = { hourlyRateText = it },
-                            modifier = Modifier.weight(1f)
-                        )
-                        TariffInputField(
-                            label = "Free Km / Hour",
-                            value = hourlyFreeKmText,
-                            onValueChange = { hourlyFreeKmText = it },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-                    TariffInputField(
-                        label = "Additional Km (₹/km)",
-                        value = hourlyExtraKmRateText,
-                        onValueChange = { hourlyExtraKmRateText = it }
-                    )
-
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
@@ -402,29 +323,4 @@ fun TariffInputField(
             unfocusedLabelColor = TextSecondary
         )
     )
-}
-
-@Composable
-fun RoundingChip(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (selected) BrandRedLight else AppCardSecondary)
-            .border(1.dp, if (selected) BrandRed else AppCardBorder, RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
-            .padding(vertical = 10.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = label,
-            color = if (selected) BrandRed else Color.Black,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
-        )
-    }
 }
