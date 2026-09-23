@@ -20,12 +20,13 @@ class TariffRepository(context: Context) {
         val id = prefs.getString("tariff_id", "standard_day") ?: "standard_day"
         val name = prefs.getString("tariff_name", "Standard City Tariff") ?: "Standard City Tariff"
         val baseFare = prefs.getFloat("base_fare", 50.0f).toDouble()
-        val minFare = prefs.getFloat("min_fare", 50.0f).toDouble()
+        val minFare = prefs.getFloat("min_fare", 0.0f).toDouble()
         val distanceRate = prefs.getFloat("distance_rate", 18.0f).toDouble()
         val waitingRate = prefs.getFloat("waiting_rate", 2.0f).toDouble()
         val freeDistance = prefs.getFloat("free_distance", 1.5f).toDouble()
-        val freeWaiting = prefs.getFloat("free_waiting", 5.0f).toDouble()
+        val freeWaiting = 0.0
         val speedThreshold = prefs.getFloat("speed_threshold", 5.0f).toDouble()
+        val distanceChargeEnabled = prefs.getBoolean("distance_charge_enabled", true)
         val roundingStr = prefs.getString("fare_rounding", FareRounding.NEAREST_ONE.name)
         val rounding = try {
             FareRounding.valueOf(roundingStr ?: FareRounding.NEAREST_ONE.name)
@@ -44,6 +45,7 @@ class TariffRepository(context: Context) {
             freeDistanceKm = freeDistance,
             freeWaitingMinutes = freeWaiting,
             waitingSpeedThresholdKmH = speedThreshold,
+            distanceChargeEnabled = distanceChargeEnabled,
             fareRounding = rounding,
             nightSurchargeMultiplier = nightSurcharge
         )
@@ -54,11 +56,12 @@ class TariffRepository(context: Context) {
             putString("tariff_id", tariff.id)
             putString("tariff_name", tariff.name)
             putFloat("base_fare", tariff.baseFare.toFloat())
-            putFloat("min_fare", tariff.minimumFare.toFloat())
+            putFloat("min_fare", 0.0f)
             putFloat("distance_rate", tariff.distanceRatePerKm.toFloat())
             putFloat("waiting_rate", tariff.waitingRatePerMinute.toFloat())
             putFloat("free_distance", tariff.freeDistanceKm.toFloat())
-            putFloat("free_waiting", tariff.freeWaitingMinutes.toFloat())
+            putFloat("free_waiting", 0.0f)
+            putBoolean("distance_charge_enabled", tariff.distanceChargeEnabled)
             putFloat("speed_threshold", tariff.waitingSpeedThresholdKmH.toFloat())
             putString("fare_rounding", tariff.fareRounding.name)
             putFloat("night_surcharge", tariff.nightSurchargeMultiplier.toFloat())
