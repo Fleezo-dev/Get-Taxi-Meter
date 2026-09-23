@@ -100,6 +100,26 @@ service cloud.firestore {
           && resource.data.status == "ASSIGNED"
           && request.resource.data.status == "CLAIMED"
           && request.resource.data.claimedByUid == request.auth.uid
+        )
+        || (
+          signedIn()
+          && request.auth.token.firebase.sign_in_provider == "anonymous"
+          && resource.data.ownerUid == request.auth.uid
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.deviceId == resource.data.deviceId
+          && resource.data.status == "CLAIMED"
+          && request.resource.data.status == "STARTED"
+          && request.resource.data.startedByUid == request.auth.uid
+        )
+        || (
+          signedIn()
+          && request.auth.token.firebase.sign_in_provider == "anonymous"
+          && resource.data.ownerUid == request.auth.uid
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.deviceId == resource.data.deviceId
+          && resource.data.status == "STARTED"
+          && request.resource.data.status == "COMPLETED"
+          && request.resource.data.completedByUid == request.auth.uid
         );
 
       allow delete: if isMasterAdmin();
