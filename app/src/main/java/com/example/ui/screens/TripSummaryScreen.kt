@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.Image
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.History
@@ -41,6 +42,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -63,6 +66,7 @@ import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
 import com.example.viewmodel.MeterViewModel
 import com.example.viewmodel.Screen
+import android.graphics.BitmapFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -258,6 +262,51 @@ fun TripSummaryScreen(
                         fontSize = 32.sp,
                         fontWeight = FontWeight.Black,
                         fontFamily = FontFamily.SansSerif
+                    )
+                }
+            }
+        }
+
+        // Driver Payment QR — shown on every completed trip when configured in the driver profile.
+        val paymentQrBitmap = remember(viewModel.getPaymentQrPath()) {
+            viewModel.getPaymentQrPath()?.let { BitmapFactory.decodeFile(it) }
+        }
+        if (paymentQrBitmap != null) {
+            Spacer(modifier = Modifier.height(14.dp))
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .border(1.dp, AppCardBorder, RoundedCornerShape(16.dp)),
+                colors = CardDefaults.cardColors(containerColor = AppWhiteBg),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "DRIVER PAYMENT QR",
+                        color = BrandRed,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 0.8.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Scan to pay the driver",
+                        color = TextSecondary,
+                        fontSize = 11.sp
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Image(
+                        bitmap = paymentQrBitmap.asImageBitmap(),
+                        contentDescription = "Driver payment QR code",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(190.dp)
                     )
                 }
             }
