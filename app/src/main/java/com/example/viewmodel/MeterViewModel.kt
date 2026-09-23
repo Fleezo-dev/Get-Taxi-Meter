@@ -17,6 +17,8 @@ import com.example.data.DriverProfileRepository
 import com.example.data.DeviceInstallation
 import com.example.data.InstallationRepository
 import com.example.data.TripEntity
+import com.example.data.TripAssignmentRepository
+import com.example.data.LoadedTripAssignment
 import com.example.data.RideMode
 import com.example.data.RidePricing
 import com.example.model.Tariff
@@ -56,6 +58,7 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     private val paymentRepo = TaxiMeterApplication.instance.driverPaymentRepository
     private val authRepo = AuthRepository()
     private val installationRepo = InstallationRepository()
+    private val tripAssignmentRepo = TripAssignmentRepository()
 
     private val _installations = MutableStateFlow<List<DeviceInstallation>>(emptyList())
     val installations: StateFlow<List<DeviceInstallation>> = _installations.asStateFlow()
@@ -356,4 +359,31 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     fun getDeviceRecord(deviceId: String): DeviceActivationRecord? {
         return activationRepo.getDeviceRecordLocally(deviceId)
     }
+
+    suspend fun loadTripByOtp(otp: String): Result<LoadedTripAssignment?> {
+        return tripAssignmentRepo.claimByOtp(otp)
+    }
+
+    suspend fun createTripAssignment(
+        deviceId: String,
+        ownerUid: String,
+        tripReference: String,
+        customerName: String,
+        customerMobile: String,
+        pickup: String,
+        drop: String,
+        rideMode: RideMode
+    ): Result<Pair<LoadedTripAssignment, String>> {
+        return tripAssignmentRepo.createAssignment(
+            deviceId = deviceId,
+            ownerUid = ownerUid,
+            tripReference = tripReference,
+            customerName = customerName,
+            customerMobile = customerMobile,
+            pickup = pickup,
+            drop = drop,
+            rideMode = rideMode.name
+        )
+    }
+
 }
