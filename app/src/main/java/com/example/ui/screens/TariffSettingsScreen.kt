@@ -51,7 +51,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.model.FareRounding
 import com.example.data.RidePricing
 import com.example.ui.theme.AppCardBorder
 import com.example.ui.theme.AppCardSecondary
@@ -80,7 +79,6 @@ fun TariffSettingsScreen(
     var waitingRateText by remember(currentTariff) { mutableStateOf(currentTariff.waitingRatePerMinute.toString()) }
     var freeDistanceText by remember(currentTariff) { mutableStateOf(currentTariff.freeDistanceKm.toString()) }
     var speedThresholdText by remember(currentTariff) { mutableStateOf(currentTariff.waitingSpeedThresholdKmH.toString()) }
-    var selectedRounding by remember(currentTariff) { mutableStateOf(currentTariff.fareRounding) }
 
     val ridePricing by viewModel.ridePricing.collectAsState()
     var hourlyRateText by remember(ridePricing) { mutableStateOf(ridePricing.hourlyRate.toString()) }
