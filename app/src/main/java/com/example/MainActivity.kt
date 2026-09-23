@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         // Check for any ongoing active trip or recovered trip on resume
         viewModel.checkForUnfinishedTrip()
+        viewModel.recordAppSeen()
     }
 }
 
