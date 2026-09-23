@@ -377,6 +377,34 @@ fun ActivationScreen(
             }
         }
 
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Administrator access is intentionally separate from the driver/tester flow.
+        Button(
+            onClick = { viewModel.navigateTo(Screen.AUTH) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .height(44.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+            border = androidx.compose.foundation.BorderStroke(1.dp, AppCardBorder),
+            shape = RoundedCornerShape(10.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                tint = TextPrimary,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "ADMINISTRATOR LOGIN",
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
         CurvedBrandFooter()
     }
