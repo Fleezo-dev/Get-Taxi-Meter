@@ -12,12 +12,20 @@ enum class RideMode {
 }
 
 data class RidePricing(
-    val hourlyRate: Double = 350.0,
-    val hourlyFreeKm: Double = 10.0,
-    val hourlyExtraKmRate: Double = 20.0,
-    val outstationDriverBata: Double = 500.0,
-    val outstationPerKmRate: Double = 30.0
-)
+    val hourlyRate: Double = DEFAULT_HOURLY_RATE,
+    val hourlyFreeKm: Double = DEFAULT_HOURLY_FREE_KM,
+    val hourlyExtraKmRate: Double = DEFAULT_HOURLY_EXTRA_KM_RATE,
+    val outstationDriverBata: Double = DEFAULT_OUTSTATION_DRIVER_BATA,
+    val outstationPerKmRate: Double = DEFAULT_OUTSTATION_PER_KM_RATE
+) {
+    companion object {
+        const val DEFAULT_HOURLY_RATE = 350.0
+        const val DEFAULT_HOURLY_FREE_KM = 10.0
+        const val DEFAULT_HOURLY_EXTRA_KM_RATE = 20.0
+        const val DEFAULT_OUTSTATION_DRIVER_BATA = 500.0
+        const val DEFAULT_OUTSTATION_PER_KM_RATE = 30.0
+    }
+}
 
 class RideModeRepository(context: Context) {
 
@@ -61,11 +69,11 @@ class RideModeRepository(context: Context) {
 
     private fun loadPricing(): RidePricing {
         return RidePricing(
-            hourlyRate = prefs.getFloat("hourly_rate", 350f).toDouble(),
-            hourlyFreeKm = prefs.getFloat("hourly_free_km", 10f).toDouble(),
-            hourlyExtraKmRate = prefs.getFloat("hourly_extra_km_rate", 20f).toDouble(),
-            outstationDriverBata = prefs.getFloat("outstation_driver_bata", 500f).toDouble(),
-            outstationPerKmRate = prefs.getFloat("outstation_per_km_rate", 30f).toDouble()
+            hourlyRate = prefs.getFloat("hourly_rate", RidePricing.DEFAULT_HOURLY_RATE.toFloat()).toDouble(),
+            hourlyFreeKm = prefs.getFloat("hourly_free_km", RidePricing.DEFAULT_HOURLY_FREE_KM.toFloat()).toDouble(),
+            hourlyExtraKmRate = prefs.getFloat("hourly_extra_km_rate", RidePricing.DEFAULT_HOURLY_EXTRA_KM_RATE.toFloat()).toDouble(),
+            outstationDriverBata = prefs.getFloat("outstation_driver_bata", RidePricing.DEFAULT_OUTSTATION_DRIVER_BATA.toFloat()).toDouble(),
+            outstationPerKmRate = prefs.getFloat("outstation_per_km_rate", RidePricing.DEFAULT_OUTSTATION_PER_KM_RATE.toFloat()).toDouble()
         )
     }
 }
