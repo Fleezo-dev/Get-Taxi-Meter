@@ -78,18 +78,25 @@ object MeterEngine {
             )
         }
 
-        val chargeableDistanceKm = max(0.0, totalDistanceKm - tariff.freeDistanceKm)
-        val rawDistanceFare = chargeableDistanceKm * tariff.distanceRatePerKm
+        // City local ride: base fare + optional per-km charge + waiting charge.
+        // Waiting is chargeable from the first minute; there is no free-wait allowance.
+        val chargeableDistanceKm = if (tariff.distanceChargeEnabled) {
+            max(0.0, totalDistanceKm - tariff.freeDistanceKm)
+        } else {
+            0.0
+        }
+        val rawDistanceFare = if (tariff.distanceChargeEnabled) {
+            chargeableDistanceKm * tariff.distanceRatePerKm
+        } else {
+            0.0
+        }
 
         val totalWaitingMinutes = waitingDurationSeconds / 60.0
-        val chargeableWaitingMinutes = max(0.0, totalWaitingMinutes - tariff.freeWaitingMinutes)
+        val chargeableWaitingMinutes = totalWaitingMinutes
         val rawWaitingFare = chargeableWaitingMinutes * tariff.waitingRatePerMinute
 
         val subtotal = (tariff.baseFare + rawDistanceFare + rawWaitingFare) * tariff.nightSurchargeMultiplier
-        val minFareApplied = subtotal < tariff.minimumFare
-        val meterFareBeforeRounding = max(subtotal, tariff.minimumFare)
-
-        val roundedMeterFare = applyRounding(meterFareBeforeRounding, tariff.fareRounding)
+        val roundedMeterFare = applyRounding(subtotal, tariff.fareRounding)
         val finalTotalFare = roundedMeterFare + extraChargesTotal
 
         return MeterBreakdown(
@@ -101,7 +108,7 @@ object MeterEngine {
             chargeableWaitingMinutes = chargeableWaitingMinutes,
             waitingFare = rawWaitingFare,
             subtotalBeforeMin = subtotal,
-            minFareApplied = minFareApplied,
+            minFareApplied = false,
             meterFare = roundedMeterFare,
             extraChargesTotal = extraChargesTotal,
             totalFare = finalTotalFare
