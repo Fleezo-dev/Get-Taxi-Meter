@@ -15,18 +15,19 @@ class MeterEngineTest {
         id = "test_tariff",
         name = "City Tariff",
         baseFare = 50.0,
-        minimumFare = 50.0,
+        minimumFare = 0.0,
         distanceRatePerKm = 18.0,
+        distanceChargeEnabled = true,
         waitingRatePerMinute = 2.0,
         freeDistanceKm = 1.5,
-        freeWaitingMinutes = 5.0,
+        freeWaitingMinutes = 0.0,
         waitingSpeedThresholdKmH = 5.0,
         fareRounding = FareRounding.NEAREST_ONE
     )
 
     @Test
     fun testBaseFareWithinFreeAllowances() {
-        // Within free distance (1.0 km <= 1.5 km) and within free waiting (3 mins <= 5 mins)
+        // Within free distance; waiting is chargeable from the first minute.
         val breakdown = MeterEngine.calculateFare(
             distanceMeters = 1000.0, // 1 km
             waitingDurationSeconds = 180L, // 3 minutes
@@ -36,9 +37,9 @@ class MeterEngineTest {
 
         assertEquals(50.0, breakdown.baseFare, 0.01)
         assertEquals(0.0, breakdown.distanceFare, 0.01)
-        assertEquals(0.0, breakdown.waitingFare, 0.01)
-        assertEquals(50.0, breakdown.meterFare, 0.01)
-        assertEquals(50.0, breakdown.totalFare, 0.01)
+        assertEquals(6.0, breakdown.waitingFare, 0.01)
+        assertEquals(56.0, breakdown.meterFare, 0.01)
+        assertEquals(56.0, breakdown.totalFare, 0.01)
     }
 
     @Test
@@ -59,20 +60,31 @@ class MeterEngineTest {
     }
 
     @Test
-    fun testWaitingFareExceedingFreeAllowance() {
-        // 15 minutes waiting -> 10 minutes chargeable * 2.0 = ₹20.0
-        // Base ₹50 + Waiting ₹20 = ₹70.0
+    fun testWaitingFareFromFirstMinute() {
         val breakdown = MeterEngine.calculateFare(
             distanceMeters = 0.0,
-            waitingDurationSeconds = 900L, // 15 mins
+            waitingDurationSeconds = 900L,
             extras = emptyList(),
             tariff = standardTariff
         )
 
-        assertEquals(10.0, breakdown.chargeableWaitingMinutes, 0.01)
-        assertEquals(20.0, breakdown.waitingFare, 0.01)
-        assertEquals(70.0, breakdown.meterFare, 0.01)
-        assertEquals(70.0, breakdown.totalFare, 0.01)
+        assertEquals(15.0, breakdown.chargeableWaitingMinutes, 0.01)
+        assertEquals(30.0, breakdown.waitingFare, 0.01)
+        assertEquals(80.0, breakdown.meterFare, 0.01)
+    }
+
+    @Test
+    fun testDistanceChargeCanBeDisabled() {
+        val noDistanceTariff = standardTariff.copy(distanceChargeEnabled = false)
+        val breakdown = MeterEngine.calculateFare(
+            distanceMeters = 6500.0,
+            waitingDurationSeconds = 0L,
+            extras = emptyList(),
+            tariff = noDistanceTariff
+        )
+
+        assertEquals(0.0, breakdown.distanceFare, 0.01)
+        assertEquals(50.0, breakdown.meterFare, 0.01)
     }
 
     @Test
@@ -95,18 +107,18 @@ class MeterEngineTest {
     }
 
     @Test
-    fun testMinimumFareEnforcement() {
-        val highMinTariff = standardTariff.copy(baseFare = 30.0, minimumFare = 80.0)
+    fun testNoMinimumFareEnforcement() {
+        val lowBaseTariff = standardTariff.copy(baseFare = 30.0, minimumFare = 80.0)
         val breakdown = MeterEngine.calculateFare(
             distanceMeters = 500.0,
             waitingDurationSeconds = 0L,
             extras = emptyList(),
-            tariff = highMinTariff
+            tariff = lowBaseTariff
         )
 
-        assertTrue(breakdown.minFareApplied)
-        assertEquals(80.0, breakdown.meterFare, 0.01)
-        assertEquals(80.0, breakdown.totalFare, 0.01)
+        assertFalse(breakdown.minFareApplied)
+        assertEquals(30.0, breakdown.meterFare, 0.01)
+        assertEquals(30.0, breakdown.totalFare, 0.01)
     }
 
     @Test
