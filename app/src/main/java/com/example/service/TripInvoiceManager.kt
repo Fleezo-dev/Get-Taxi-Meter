@@ -82,33 +82,49 @@ object TripInvoiceManager {
             line(262f)
 
             text("FARE SUMMARY", 42f, 290f, 10f, red, true)
-            row("Base / Minimum Fare", String.format(Locale.US, "₹%.2f", trip.breakdown.baseFare), 318f)
+            row("Base Fare", String.format(Locale.US, "₹%.2f", trip.breakdown.baseFare), 318f)
             row("Distance Charges", String.format(Locale.US, "₹%.2f", trip.breakdown.distanceFare), 342f)
             row("Waiting Charges", String.format(Locale.US, "₹%.2f", trip.breakdown.waitingFare), 366f)
-            if (trip.breakdown.extraChargesTotal > 0) row("Additional Charges", String.format(Locale.US, "₹%.2f", trip.breakdown.extraChargesTotal), 390f)
-            paint.color = light; canvas.drawRoundRect(42f, 412f, 553f, 470f, 12f, 12f, paint)
-            text("TOTAL FARE", 58f, 447f, 14f, black, true)
+            var extraY = 390f
+            if (trip.extras.isNotEmpty()) {
+                trip.extras.forEach { extra ->
+                    row(extra.label, String.format(Locale.US, "₹%.2f", extra.amount), extraY)
+                    extraY += 22f
+                }
+            }
+            if (trip.breakdown.extraChargesTotal > 0 && trip.extras.isEmpty()) {
+                row("Additional Charges", String.format(Locale.US, "₹%.2f", trip.breakdown.extraChargesTotal), extraY)
+                extraY += 22f
+            }
+            val totalBoxTop = maxOf(412f, extraY + 2f)
+            val totalBoxBottom = totalBoxTop + 58f
+            paint.color = light; canvas.drawRoundRect(42f, totalBoxTop, 553f, totalBoxBottom, 12f, 12f, paint)
+            val totalLabelY = totalBoxTop + 35f
+            val totalValueY = totalBoxTop + 38f
+            text("TOTAL FARE", 58f, totalLabelY, 14f, black, true)
             val totalText = String.format(Locale.US, "₹%.2f", trip.breakdown.totalFare)
-            paint.textSize = 24f; text(totalText, 545f - paint.measureText(totalText), 450f, 24f, red, true)
+            paint.textSize = 24f; text(totalText, 545f - paint.measureText(totalText), totalValueY + 3f, 24f, red, true)
 
-            text("DRIVER", 42f, 505f, 10f, red, true)
-            row("Driver Name", if (driver.name.isBlank()) "—" else driver.name, 530f)
-            row("Driver ID", driverId, 553f)
-            row("Vehicle", driver.vehicleNumber + " • " + driver.vehicleType, 576f)
+            val driverTop = totalBoxBottom + 35f
+            text("DRIVER", 42f, driverTop, 10f, red, true)
+            row("Driver Name", if (driver.name.isBlank()) "—" else driver.name, driverTop + 25f)
+            row("Driver ID", driverId, driverTop + 48f)
+            row("Vehicle", driver.vehicleNumber + " • " + driver.vehicleType, driverTop + 71f)
 
             val qr = if (paymentQrPath != null) BitmapFactory.decodeFile(paymentQrPath) else null
             if (qr != null) {
-                text("PAYMENT", 420f, 505f, 10f, red, true)
-                canvas.drawBitmap(Bitmap.createScaledBitmap(qr, 92, 92, true), null, android.graphics.Rect(420, 518, 512, 610), paint)
-                text("Scan to pay driver", 420f, 624f, 8.5f, gray)
+                text("PAYMENT QR", 420f, driverTop, 10f, red, true)
+                canvas.drawBitmap(Bitmap.createScaledBitmap(qr, 92, 92, true), null, android.graphics.Rect(420, driverTop.toInt() + 13, 512, driverTop.toInt() + 105), paint)
+                text("Scan to pay driver", 420f, driverTop + 118f, 8.5f, gray)
             }
 
-            line(700f)
-            text(COMPANY, 42f, 728f, 11f, black, true)
-            text(ADDRESS, 42f, 747f, 8.5f, gray)
-            text("Mobile: " + MOBILE, 42f, 766f, 8.5f, gray)
-            text(WEBSITES, 42f, 785f, 8.5f, gray)
-            text("Thank you for travelling with us.", 42f, 812f, 9.5f, red, true)
+            val footerY = maxOf(700f, driverTop + 145f)
+            line(footerY)
+            text(COMPANY, 42f, footerY + 28f, 11f, black, true)
+            text(ADDRESS, 42f, footerY + 47f, 8.5f, gray)
+            text("Mobile: " + MOBILE, 42f, footerY + 66f, 8.5f, gray)
+            text(WEBSITES, 42f, footerY + 85f, 8.5f, gray)
+            text("Thank you for travelling with us.", 42f, footerY + 112f, 9.5f, red, true)
             document.finishPage(page)
 
             val safeName = invoiceNo.replace("[^A-Za-z0-9-]".toRegex(), "_") + ".pdf"
