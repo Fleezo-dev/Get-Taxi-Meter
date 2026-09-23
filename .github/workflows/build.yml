@@ -37,6 +37,16 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      - name: Verify generated Firebase Android resources
+        run: |
+          ./gradlew processDebugGoogleServices
+          test -s app/build/generated/res/google-services/debug/values/values.xml
+          grep -q 'name="google_app_id"[^>]*>1:905902052873:android:1bf6d3ea58532b9ab04ad8<' app/build/generated/res/google-services/debug/values/values.xml
+          grep -q 'name="project_id"[^>]*>get-taxi-meter-productio-b0cea<' app/build/generated/res/google-services/debug/values/values.xml
+          KEY_SHA256=$(python3 -c "import hashlib,re; s=open('app/build/generated/res/google-services/debug/values/values.xml').read(); k=re.search(r'name=\"google_api_key\"[^>]*>([^<]+)<',s).group(1); print(hashlib.sha256(k.encode()).hexdigest())")
+          echo "Firebase generated resources are using the expected project/app."
+          echo "google_api_key SHA256: $KEY_SHA256"
+
       - name: Build Debug APK
         run: ./gradlew assembleDebug
 
