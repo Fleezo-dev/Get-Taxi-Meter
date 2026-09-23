@@ -16,7 +16,13 @@ data class LoadedTripAssignment(
     val customerName: String,
     val customerMobile: String,
     val pickup: String,
+    val pickupLatitude: Double?,
+    val pickupLongitude: Double?,
+    val pickupPlaceId: String?,
     val drop: String,
+    val dropLatitude: Double?,
+    val dropLongitude: Double?,
+    val dropPlaceId: String?,
     val rideMode: String,
     val status: String
 )
@@ -42,7 +48,13 @@ class TripAssignmentRepository {
         customerName: String,
         customerMobile: String,
         pickup: String,
+        pickupLatitude: Double?,
+        pickupLongitude: Double?,
+        pickupPlaceId: String?,
         drop: String,
+        dropLatitude: Double?,
+        dropLongitude: Double?,
+        dropPlaceId: String?,
         rideMode: String
     ): Result<Pair<LoadedTripAssignment, String>> = runCatching {
         require(auth.currentUser?.isAnonymous == false) { "Administrator authentication required" }
@@ -62,7 +74,13 @@ class TripAssignmentRepository {
             "customerName" to customerName,
             "customerMobile" to customerMobile,
             "pickup" to pickup,
+            "pickupLatitude" to (pickupLatitude ?: 0.0),
+            "pickupLongitude" to (pickupLongitude ?: 0.0),
+            "pickupPlaceId" to (pickupPlaceId ?: ""),
             "drop" to drop,
+            "dropLatitude" to (dropLatitude ?: 0.0),
+            "dropLongitude" to (dropLongitude ?: 0.0),
+            "dropPlaceId" to (dropPlaceId ?: ""),
             "rideMode" to rideMode,
             "otpHash" to tripId,
             "status" to STATUS_ASSIGNED,
@@ -70,7 +88,7 @@ class TripAssignmentRepository {
         )).await()
 
         Pair(
-            LoadedTripAssignment(tripId, "", "", tripRef, customerName, customerMobile, pickup, drop, rideMode, STATUS_ASSIGNED),
+            LoadedTripAssignment(tripId, "", "", tripRef, customerName, customerMobile, pickup, pickupLatitude, pickupLongitude, pickupPlaceId, drop, dropLatitude, dropLongitude, dropPlaceId, rideMode, STATUS_ASSIGNED),
             otp
         )
     }
@@ -112,7 +130,13 @@ class TripAssignmentRepository {
             customerName = doc.getString("customerName").orEmpty(),
             customerMobile = doc.getString("customerMobile").orEmpty(),
             pickup = doc.getString("pickup").orEmpty(),
+            pickupLatitude = doc.getDouble("pickupLatitude"),
+            pickupLongitude = doc.getDouble("pickupLongitude"),
+            pickupPlaceId = doc.getString("pickupPlaceId").orEmpty().ifBlank { null },
             drop = doc.getString("drop").orEmpty(),
+            dropLatitude = doc.getDouble("dropLatitude"),
+            dropLongitude = doc.getDouble("dropLongitude"),
+            dropPlaceId = doc.getString("dropPlaceId").orEmpty().ifBlank { null },
             rideMode = doc.getString("rideMode") ?: "CITY_RIDE",
             status = STATUS_CLAIMED
         )
