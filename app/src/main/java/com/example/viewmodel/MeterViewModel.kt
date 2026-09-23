@@ -341,7 +341,10 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
             ).onFailure {
                 android.util.Log.w("InstallationTracker", "Unable to sync activation status", it)
             }
-            _currentScreen.value = Screen.HOME
+            // A newly activated driver must complete the device setup wizard
+            // before entering the meter. The wizard requests runtime permissions
+            // and guides the user through Android special settings.
+            _currentScreen.value = Screen.SETUP_CHECKLIST
         }
         return result
     }
