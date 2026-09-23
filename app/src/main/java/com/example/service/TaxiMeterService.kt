@@ -123,7 +123,7 @@ class TaxiMeterService : Service() {
                     RideMode.valueOf(intent.getStringExtra(EXTRA_RIDE_MODE) ?: RideMode.CITY_RIDE.name)
                 }.getOrDefault(RideMode.CITY_RIDE)
                 val cityTariff = app.tariffRepository.loadTariff()
-                val pricing = app.rideModeRepo.pricing.value
+                val pricing = app.rideModeRepository.pricing.value
                 val tariff = when (mode) {
                     RideMode.CITY_RIDE -> cityTariff
                     RideMode.HOURLY_RENTAL -> cityTariff.copy(
