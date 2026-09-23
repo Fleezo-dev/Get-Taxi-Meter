@@ -1,14 +1,12 @@
 package com.example.engine
 
 import com.example.model.ExtraCharge
-import com.example.model.FareRounding
 import com.example.model.MeterBreakdown
 import com.example.model.Tariff
 import kotlin.math.atan2
 import kotlin.math.ceil
 import kotlin.math.cos
 import kotlin.math.max
-import kotlin.math.round
 import kotlin.math.sin
 import kotlin.math.sqrt
 
@@ -36,7 +34,7 @@ object MeterEngine {
             val chargeableDistanceKm = max(0.0, totalDistanceKm - includedKm)
             val distanceFare = chargeableDistanceKm * tariff.distanceRatePerKm
             val hourlyFare = billedHours * tariff.baseFare
-            val meterFare = applyRounding(hourlyFare + distanceFare, tariff.fareRounding)
+            val meterFare = hourlyFare + distanceFare
             val totalFare = meterFare + extraChargesTotal
 
             return MeterBreakdown(
@@ -59,7 +57,7 @@ object MeterEngine {
             // Outstation: Driver Bata/Base Fare + per-km rate. No city-meter waiting charge.
             val chargeableDistanceKm = max(0.0, totalDistanceKm - tariff.freeDistanceKm)
             val distanceFare = chargeableDistanceKm * tariff.distanceRatePerKm
-            val meterFare = applyRounding(tariff.baseFare + distanceFare, tariff.fareRounding)
+            val meterFare = tariff.baseFare + distanceFare
             val totalFare = meterFare + extraChargesTotal
 
             return MeterBreakdown(
@@ -96,8 +94,8 @@ object MeterEngine {
         val rawWaitingFare = chargeableWaitingMinutes * tariff.waitingRatePerMinute
 
         val subtotal = (tariff.baseFare + rawDistanceFare + rawWaitingFare) * tariff.nightSurchargeMultiplier
-        val roundedMeterFare = applyRounding(subtotal, tariff.fareRounding)
-        val finalTotalFare = roundedMeterFare + extraChargesTotal
+        val meterFare = subtotal
+        val finalTotalFare = meterFare + extraChargesTotal
 
         return MeterBreakdown(
             baseFare = tariff.baseFare,
@@ -109,23 +107,11 @@ object MeterEngine {
             waitingFare = rawWaitingFare,
             subtotalBeforeMin = subtotal,
             minFareApplied = false,
-            meterFare = roundedMeterFare,
+            meterFare = meterFare,
             extraChargesTotal = extraChargesTotal,
             totalFare = finalTotalFare
         )
     }
-    /**
-     * Applies the configured rounding rule to the meter fare.
-     */
-    fun applyRounding(amount: Double, rounding: FareRounding): Double {
-        return when (rounding) {
-            FareRounding.EXACT -> round(amount * 100.0) / 100.0
-            FareRounding.NEAREST_ONE -> round(amount)
-            FareRounding.NEAREST_FIVE -> round(amount / 5.0) * 5.0
-            FareRounding.CEIL_ONE -> ceil(amount)
-        }
-    }
-
     /**
      * Computes the great-circle distance between two GPS coordinates using the Haversine formula in meters.
      */
