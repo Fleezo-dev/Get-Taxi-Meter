@@ -362,7 +362,6 @@ fun AdminScreen(
 
             if (showLoadTripDialog && selectedInstallation != null) {
                 LoadTripDialog(
-                    installation = selectedInstallation!!,
                     viewModel = viewModel,
                     onDismiss = { showLoadTripDialog = false },
                     coroutineScope = coroutineScope
@@ -628,7 +627,7 @@ private fun InstallationMonitorRow(installation: DeviceInstallation, onLoadTrip:
             colors = ButtonDefaults.buttonColors(containerColor = BrandRed),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Text("LOAD TRIP TO THIS DRIVER", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text("CREATE TRIP & GENERATE OTP", fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -638,7 +637,6 @@ private fun formatInstallationTime(timeMs: Long): String =
 
 @Composable
 private fun LoadTripDialog(
-    installation: DeviceInstallation,
     viewModel: MeterViewModel,
     onDismiss: () -> Unit,
     coroutineScope: kotlinx.coroutines.CoroutineScope
@@ -656,10 +654,10 @@ private fun LoadTripDialog(
     AlertDialog(
         onDismissRequest = { if (!saving) onDismiss() },
         containerColor = Color.White,
-        title = { Text("LOAD TRIP TO DRIVER", color = TextPrimary, fontWeight = FontWeight.Bold) },
+        title = { Text("CREATE & LOAD TRIP", color = TextPrimary, fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Driver: " + installation.driverName.ifBlank { installation.deviceId }, fontSize = 12.sp, color = TextSecondary)
+                Text("Universal trip — no driver is selected.", fontSize = 12.sp, color = TextSecondary)
                 Text("The generated OTP is given to the driver. The driver enters it in Load Trip on the meter.", fontSize = 11.sp, color = TextSecondary)
                 OutlinedTextField(value = tripReference, onValueChange = { tripReference = it }, label = { Text("Trip Reference") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = customerName, onValueChange = { customerName = it }, label = { Text("Customer Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
@@ -685,7 +683,7 @@ private fun LoadTripDialog(
                         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
                             Text("DRIVER LOAD OTP", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             Text(generatedOtp!!, color = BrandRed, fontSize = 28.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Black)
-                            Text("Give this OTP to the driver. It can be used once.", color = TextSecondary, fontSize = 10.sp, textAlign = TextAlign.Center)
+                            Text("Give this Trip Access OTP to the driver. It can be used once.", color = TextSecondary, fontSize = 10.sp, textAlign = TextAlign.Center)
                         }
                     }
                 }
@@ -700,8 +698,6 @@ private fun LoadTripDialog(
                         error = null
                         coroutineScope.launch {
                             viewModel.createTripAssignment(
-                                deviceId = installation.deviceId,
-                                ownerUid = installation.ownerUid,
                                 tripReference = tripReference,
                                 customerName = customerName,
                                 customerMobile = customerMobile,
