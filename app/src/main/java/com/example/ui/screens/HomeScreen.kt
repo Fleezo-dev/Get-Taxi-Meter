@@ -82,6 +82,7 @@ import com.example.service.TaxiMeterService
 import com.example.ui.components.CompactMeterDashboard
 import com.example.ui.components.ManualExtraChargeDialog
 import com.example.ui.theme.AppCardBorder
+import com.example.ui.theme.AppCardSecondary
 import com.example.ui.theme.BrandRed
 import com.example.ui.theme.TextSecondary
 import com.example.viewmodel.MeterViewModel
@@ -104,7 +105,6 @@ fun HomeScreen(
     val todayTrips by viewModel.todayCompletedTrips.collectAsState()
     val currentTariff by viewModel.currentTariff.collectAsState()
     val tripState by viewModel.tripState.collectAsState()
-    val activeLoadedTrip by viewModel.loadedTrip.collectAsState()
 
     var showTodaySummaryDialog by remember { mutableStateOf(false) }
     var showMoreMenuDialog by remember { mutableStateOf(false) }
