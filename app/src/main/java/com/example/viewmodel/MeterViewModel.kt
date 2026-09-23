@@ -250,6 +250,11 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
         _currentScreen.value = Screen.LIVE_METER
     }
 
+    fun startLoadedTrip(context: Context, assignment: LoadedTripAssignment) {
+        TaxiMeterService.startLoadedTrip(context, assignment.assignmentId, assignment.rideMode)
+        _currentScreen.value = Screen.LIVE_METER
+    }
+
     fun resumeRecoveredTrip(context: Context, tripId: Long) {
         TaxiMeterService.resumeTrip(context, tripId)
         _recoveredTrip.value = null
