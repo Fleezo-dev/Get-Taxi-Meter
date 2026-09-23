@@ -209,7 +209,41 @@ fun TariffSettingsScreen(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "HOURLY RENTAL",
+                        color = BrandRed,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Black,
+                        letterSpacing = 1.sp
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        TariffInputField(
+                            label = "Hourly Rate (₹/hour)",
+                            value = hourlyRateText,
+                            onValueChange = { hourlyRateText = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                        TariffInputField(
+                            label = "Additional Km (₹/km)",
+                            value = hourlyExtraKmRateText,
+                            onValueChange = { hourlyExtraKmRateText = it },
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    TariffInputField(
+                        label = "Free Distance / Hour (km)",
+                        value = hourlyFreeKmText,
+                        onValueChange = { hourlyFreeKmText = it }
+                    )
+
+                    Text(
+                        text = "Default hourly rental: ₹350/hour. Additional distance: ₹20/km.",
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
 
                     Text(
                         text = "OUTSTATION",
