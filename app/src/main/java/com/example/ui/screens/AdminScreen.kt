@@ -663,7 +663,7 @@ private fun LoadTripDialog(
     var saving by remember { mutableStateOf(false) }
     var generatedOtp by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
-    val placesClient = remember(context) { Places.createClient(context) }
+    val placesClient = remember(context) { if (Places.isInitialized()) Places.createClient(context) else null }
 
     fun autocompleteIntent(initialQuery: String): android.content.Intent =
         PlaceAutocomplete.createIntent(context) {
@@ -681,7 +681,7 @@ private fun LoadTripDialog(
                 prediction.placeId,
                 listOf(Place.Field.ID, Place.Field.DISPLAY_NAME, Place.Field.FORMATTED_ADDRESS, Place.Field.LOCATION)
             ).setSessionToken(token).build()
-            placesClient.fetchPlace(request)
+            placesClient?.fetchPlace(request) ?: run { error = "Google Places is not initialized"; return@rememberLauncherForActivityResult }
                 .addOnSuccessListener { response ->
                     val place = response.place
                     pickup = place.formattedAddress ?: place.displayName ?: prediction.getFullText(null).toString()
@@ -703,7 +703,7 @@ private fun LoadTripDialog(
                 prediction.placeId,
                 listOf(Place.Field.ID, Place.Field.DISPLAY_NAME, Place.Field.FORMATTED_ADDRESS, Place.Field.LOCATION)
             ).setSessionToken(token).build()
-            placesClient.fetchPlace(request)
+            placesClient?.fetchPlace(request) ?: run { error = "Google Places is not initialized"; return@rememberLauncherForActivityResult }
                 .addOnSuccessListener { response ->
                     val place = response.place
                     drop = place.formattedAddress ?: place.displayName ?: prediction.getFullText(null).toString()
