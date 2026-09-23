@@ -7,6 +7,7 @@ import android.os.Build
 import com.example.data.AppDatabase
 import com.example.data.TariffRepository
 import com.example.data.RideModeRepository
+import com.google.android.libraries.places.api.Places
 
 class TaxiMeterApplication : Application() {
 
@@ -37,7 +38,16 @@ class TaxiMeterApplication : Application() {
         driverProfileRepository = com.example.data.DriverProfileRepository(this)
         activationRepository = com.example.data.ActivationRepository(this)
         driverPaymentRepository = com.example.data.DriverPaymentRepository(this)
+        initializePlaces()
         createNotificationChannel()
+    }
+
+    private fun initializePlaces() {
+        val apiKey = BuildConfig.GOOGLE_MAPS_API_KEY.trim()
+        if (apiKey.isBlank() || apiKey == "YOUR_GOOGLE_MAPS_API_KEY") return
+        runCatching {
+            if (!Places.isInitialized()) Places.initializeWithNewPlacesApiEnabled(this, apiKey)
+        }.onFailure { android.util.Log.w("GooglePlaces", "Places SDK initialization failed", it) }
     }
 
     private fun createNotificationChannel() {
