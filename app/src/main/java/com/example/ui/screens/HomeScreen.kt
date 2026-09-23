@@ -56,6 +56,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,6 +96,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val coroutineScope = rememberCoroutineScope()
 
     val recoveredTrip by viewModel.recoveredTrip.collectAsState()
     val todayTrips by viewModel.todayCompletedTrips.collectAsState()
@@ -402,7 +404,7 @@ fun HomeScreen(
                             } else {
                                 loadingTrip = true
                                 loadTripError = null
-                                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                                coroutineScope.launch {
                                     viewModel.loadTripByOtp(loadTripOtp)
                                         .onSuccess {
                                             if (it == null) {
