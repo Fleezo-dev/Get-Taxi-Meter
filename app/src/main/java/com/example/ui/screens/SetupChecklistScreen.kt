@@ -552,7 +552,13 @@ fun SetupChecklistScreen(
         Spacer(modifier = Modifier.height(20.dp))
 
         // Continue Button
-        val allEssentialCompleted = driverProfile.isRegistered && hasFineLocation && isActivated
+        val allEssentialCompleted = driverProfile.isRegistered &&
+            isActivated &&
+            hasFineLocation &&
+            hasNotificationPermission &&
+            hasBackgroundLocation &&
+            isBatteryOptimizedIgnored &&
+            canDrawOverlay
 
         Button(
             onClick = {
