@@ -14,6 +14,8 @@ import com.example.data.DeviceActivationRecord
 import com.example.data.DeviceIdManager
 import com.example.data.DriverProfile
 import com.example.data.DriverProfileRepository
+import com.example.data.DeviceInstallation
+import com.example.data.InstallationRepository
 import com.example.data.TripEntity
 import com.example.data.RideMode
 import com.example.data.RidePricing
@@ -53,6 +55,12 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     private val rideModeRepo = TaxiMeterApplication.instance.rideModeRepository
     private val paymentRepo = TaxiMeterApplication.instance.driverPaymentRepository
     private val authRepo = AuthRepository()
+    private val installationRepo = InstallationRepository()
+
+    private val _installations = MutableStateFlow<List<DeviceInstallation>>(emptyList())
+    val installations: StateFlow<List<DeviceInstallation>> = _installations.asStateFlow()
+    private val _installationsLoading = MutableStateFlow(false)
+    val installationsLoading: StateFlow<Boolean> = _installationsLoading.asStateFlow()
 
     private val _authProfile = MutableStateFlow<AuthProfile?>(null)
     val authProfile: StateFlow<AuthProfile?> = _authProfile.asStateFlow()
@@ -105,7 +113,43 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         viewModelScope.launch { initializeAuth() }
+        viewModelScope.launch { recordInstallationSeen() }
         checkForUnfinishedTrip()
+    }
+
+    /**
+     * Records first-seen/last-seen information without blocking the meter UI.
+     * Failure is intentionally non-fatal: the taxi meter must continue working
+     * even if Firebase is unavailable.
+     */
+    private suspend fun recordInstallationSeen() {
+        val context = getApplication<Application>()
+        val profile = driverRepo.profile.value
+        val result = installationRepo.registerOrUpdate(
+            deviceId = DeviceIdManager.getDeviceId(context),
+            activationStatus = activationRepo.activationStatus.value,
+            driverName = profile.name,
+            mobileNumber = profile.mobileNumber,
+            vehicleNumber = profile.vehicleNumber,
+            vehicleType = profile.vehicleType
+        )
+        if (result.isFailure) {
+            android.util.Log.w("InstallationTracker", "Installation tracking unavailable", result.exceptionOrNull())
+        }
+    }
+
+    fun recordAppSeen() {
+        viewModelScope.launch(Dispatchers.IO) { recordInstallationSeen() }
+    }
+
+    fun refreshInstallations() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _installationsLoading.value = true
+            installationRepo.getAllInstallations()
+                .onSuccess { _installations.value = it }
+                .onFailure { android.util.Log.w("InstallationTracker", "Unable to load installations", it) }
+            _installationsLoading.value = false
+        }
     }
 
     private suspend fun initializeAuth() {
@@ -288,6 +332,15 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
         val profile = driverProfile.value
         val result = activationRepo.activateDevice(deviceId, activationCode, profile)
         if (result is ActivationResult.Success) {
+            installationRepo.markActivated(
+                deviceId = deviceId,
+                driverName = profile.name,
+                mobileNumber = profile.mobileNumber,
+                vehicleNumber = profile.vehicleNumber,
+                vehicleType = profile.vehicleType
+            ).onFailure {
+                android.util.Log.w("InstallationTracker", "Unable to sync activation status", it)
+            }
             _currentScreen.value = Screen.HOME
         }
         return result
