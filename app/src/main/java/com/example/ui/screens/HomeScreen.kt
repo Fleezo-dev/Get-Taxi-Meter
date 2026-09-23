@@ -109,6 +109,7 @@ fun HomeScreen(
     var showRecoveredTripDialog by remember { mutableStateOf(false) }
     var showLoadTripDialog by remember { mutableStateOf(false) }
     var loadedTrip by remember { mutableStateOf<LoadedTripAssignment?>(null) }
+    var pendingLoadedTripStart by remember { mutableStateOf<LoadedTripAssignment?>(null) }
     var loadTripOtp by remember { mutableStateOf("") }
     var loadTripError by remember { mutableStateOf<String?>(null) }
     var loadingTrip by remember { mutableStateOf(false) }
@@ -164,7 +165,13 @@ fun HomeScreen(
             if (locationManager != null && !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
-            viewModel.startTrip(context)
+            val pending = pendingLoadedTripStart
+            if (pending != null) {
+                pendingLoadedTripStart = null
+                viewModel.startLoadedTrip(context, pending)
+            } else {
+                viewModel.startTrip(context)
+            }
         }
     }
 
@@ -182,7 +189,13 @@ fun HomeScreen(
             if (locationManager != null && !locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
             }
-            viewModel.startTrip(context)
+            val pending = pendingLoadedTripStart
+            if (pending != null) {
+                pendingLoadedTripStart = null
+                viewModel.startLoadedTrip(context, pending)
+            } else {
+                viewModel.startTrip(context)
+            }
         } else {
             val permissions = mutableListOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -427,6 +440,7 @@ fun HomeScreen(
                             viewModel.setRideMode(
                                 try { RideMode.valueOf(trip.rideMode) } catch (_: Exception) { RideMode.CITY_RIDE }
                             )
+                            pendingLoadedTripStart = trip
                             loadedTrip = null
                             loadTripOtp = ""
                             showLoadTripDialog = false
