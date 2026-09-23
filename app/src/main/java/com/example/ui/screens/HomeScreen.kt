@@ -50,6 +50,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -102,6 +103,10 @@ fun HomeScreen(
     var showMoreMenuDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showRecoveredTripDialog by remember { mutableStateOf(recoveredTrip != null) }
+
+    LaunchedEffect(recoveredTrip?.tripId) {
+        if (recoveredTrip != null) showRecoveredTripDialog = true
+    }
     var showRideModeDialog by remember { mutableStateOf(false) }
     var logoTaps by remember { mutableStateOf(0) }
 
@@ -337,7 +342,7 @@ fun HomeScreen(
             },
             title = {
                 Text(
-                    text = "Resume Unfinished Trip?",
+                    text = "LOAD UNFINISHED TRIP?",
                     color = Color.Black,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
