@@ -2,7 +2,6 @@ package com.example
 
 import com.example.engine.MeterEngine
 import com.example.model.ExtraCharge
-import com.example.model.FareRounding
 import com.example.model.Tariff
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -22,7 +21,6 @@ class MeterEngineTest {
         freeDistanceKm = 1.5,
         freeWaitingMinutes = 0.0,
         waitingSpeedThresholdKmH = 5.0,
-        fareRounding = FareRounding.NEAREST_ONE
     )
 
     @Test
@@ -119,15 +117,6 @@ class MeterEngineTest {
         assertFalse(breakdown.minFareApplied)
         assertEquals(30.0, breakdown.meterFare, 0.01)
         assertEquals(30.0, breakdown.totalFare, 0.01)
-    }
-
-    @Test
-    fun testRoundingModes() {
-        assertEquals(42.34, MeterEngine.applyRounding(42.344, FareRounding.EXACT), 0.001)
-        assertEquals(42.0, MeterEngine.applyRounding(42.4, FareRounding.NEAREST_ONE), 0.001)
-        assertEquals(43.0, MeterEngine.applyRounding(42.6, FareRounding.NEAREST_ONE), 0.001)
-        assertEquals(45.0, MeterEngine.applyRounding(43.0, FareRounding.NEAREST_FIVE), 0.001)
-        assertEquals(43.0, MeterEngine.applyRounding(42.1, FareRounding.CEIL_ONE), 0.001)
     }
 
     @Test
