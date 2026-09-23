@@ -58,6 +58,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.AppRole
 import com.example.data.DeviceIdManager
 import com.example.ui.components.BrandLogo
 import com.example.ui.components.CurvedBrandFooter
@@ -88,6 +89,7 @@ fun AdminScreen(
     val driverProfile by viewModel.driverProfile.collectAsState()
     val isActivated by viewModel.isActivated.collectAsState()
     val localDeviceId = remember { DeviceIdManager.getDeviceId(context) }
+    val isMasterAdmin = viewModel.hasRole(AppRole.MASTER_ADMIN)
 
     // Admin Generator State
     var targetDeviceId by remember { mutableStateOf(localDeviceId) }
@@ -127,7 +129,53 @@ fun AdminScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (!isAuthenticated) {
+        if (!isMasterAdmin) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = androidx.compose.foundation.BorderStroke(1.dp, AppCardBorder)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Admin authentication required",
+                        tint = BrandRed,
+                        modifier = Modifier.size(40.dp)
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = "Administrator Login Required",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "Driver/test devices cannot access the admin activation generator.",
+                        fontSize = 12.5.sp,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(top = 6.dp)
+                    )
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Button(
+                        onClick = { viewModel.navigateTo(Screen.AUTH) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandRed),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("ADMINISTRATOR LOGIN", fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        } else if (!isAuthenticated) {
             // PIN Authentication Screen
             Card(
                 modifier = Modifier
