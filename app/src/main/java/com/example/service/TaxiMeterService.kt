@@ -18,6 +18,7 @@ import com.example.R
 import com.example.TaxiMeterApplication
 import com.example.data.TripEntity
 import com.example.data.RideMode
+import com.example.data.TripAssignmentRepository
 import com.example.engine.MeterEngine
 import com.example.model.ExtraCharge
 import com.example.model.Tariff
@@ -59,6 +60,8 @@ class TaxiMeterService : Service() {
     private var lastAcceptedTimeMs: Long? = null
     private var motionState = MeterEngine.MotionState(isMoving = false, consecutiveStopTicks = 0, consecutiveMoveTicks = 0)
     private var lastDbSyncTimeMs: Long = 0L
+    private val tripAssignmentRepository = TripAssignmentRepository()
+    private var activeAssignmentId: String? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -82,6 +85,7 @@ class TaxiMeterService : Service() {
         }
         when (intent.action) {
             ACTION_START_TRIP -> {
+                activeAssignmentId = null
                 val app = TaxiMeterApplication.instance
                 val cityTariff = app.tariffRepository.loadTariff()
                 val pricing = app.rideModeRepository.pricing.value
@@ -111,6 +115,47 @@ class TaxiMeterService : Service() {
                     )
                 }
                 startTripInternal(tariff)
+            }
+            ACTION_START_LOADED_TRIP -> {
+                activeAssignmentId = intent.getStringExtra(EXTRA_ASSIGNMENT_ID)
+                val app = TaxiMeterApplication.instance
+                val mode = runCatching {
+                    RideMode.valueOf(intent.getStringExtra(EXTRA_RIDE_MODE) ?: RideMode.CITY_RIDE.name)
+                }.getOrDefault(RideMode.CITY_RIDE)
+                val cityTariff = app.tariffRepository.loadTariff()
+                val pricing = app.rideModeRepo.pricing.value
+                val tariff = when (mode) {
+                    RideMode.CITY_RIDE -> cityTariff
+                    RideMode.HOURLY_RENTAL -> cityTariff.copy(
+                        id = "hourly_rental",
+                        name = "Hourly Rental",
+                        baseFare = pricing.hourlyRate,
+                        minimumFare = 0.0,
+                        distanceRatePerKm = pricing.hourlyExtraKmRate,
+                        waitingRatePerMinute = 0.0,
+                        freeDistanceKm = pricing.hourlyFreeKm,
+                        freeWaitingMinutes = 0.0,
+                        nightSurchargeMultiplier = 1.0
+                    )
+                    RideMode.OUTSTATION -> cityTariff.copy(
+                        id = "outstation",
+                        name = "Outstation",
+                        baseFare = pricing.outstationDriverBata,
+                        minimumFare = 0.0,
+                        distanceRatePerKm = pricing.outstationPerKmRate,
+                        waitingRatePerMinute = 0.0,
+                        freeDistanceKm = 0.0,
+                        freeWaitingMinutes = 0.0,
+                        nightSurchargeMultiplier = 1.0
+                    )
+                }
+                startTripInternal(tariff)
+                activeAssignmentId?.let { assignmentId ->
+                    serviceScope.launch(Dispatchers.IO) {
+                        tripAssignmentRepository.markStarted(assignmentId)
+                            .onFailure { android.util.Log.w("TripAssignment", "Unable to mark trip STARTED", it) }
+                    }
+                }
             }
             ACTION_RESUME_RECOVERED -> {
                 val tripId = intent.getLongExtra(EXTRA_TRIP_ID, 0L)
@@ -510,6 +555,13 @@ class TaxiMeterService : Service() {
         }
 
         releaseWakeLock()
+        activeAssignmentId?.let { assignmentId ->
+            serviceScope.launch(Dispatchers.IO) {
+                tripAssignmentRepository.markCompleted(assignmentId)
+                    .onFailure { android.util.Log.w("TripAssignment", "Unable to mark trip COMPLETED", it) }
+            }
+        }
+        activeAssignmentId = null
         FloatingOverlayManager.hideOverlay(this)
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         _isServiceRunning.value = false
@@ -530,12 +582,15 @@ class TaxiMeterService : Service() {
 
     companion object {
         const val ACTION_START_TRIP = "com.example.action.START_TRIP"
+        const val ACTION_START_LOADED_TRIP = "com.example.action.START_LOADED_TRIP"
         const val ACTION_RESUME_RECOVERED = "com.example.action.RESUME_RECOVERED"
         const val ACTION_ADD_EXTRA = "com.example.action.ADD_EXTRA"
         const val ACTION_REMOVE_EXTRA = "com.example.action.REMOVE_EXTRA"
         const val ACTION_END_TRIP = "com.example.action.END_TRIP"
 
         const val EXTRA_TRIP_ID = "trip_id"
+        const val EXTRA_ASSIGNMENT_ID = "assignment_id"
+        const val EXTRA_RIDE_MODE = "ride_mode"
         const val EXTRA_LABEL = "extra_label"
         const val EXTRA_AMOUNT = "extra_amount"
         const val EXTRA_ID = "extra_id"
@@ -556,6 +611,19 @@ class TaxiMeterService : Service() {
         fun startTrip(context: Context) {
             val intent = Intent(context, TaxiMeterService::class.java).apply {
                 action = ACTION_START_TRIP
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(intent)
+            } else {
+                context.startService(intent)
+            }
+        }
+
+        fun startLoadedTrip(context: Context, assignmentId: String, rideMode: String) {
+            val intent = Intent(context, TaxiMeterService::class.java).apply {
+                action = ACTION_START_LOADED_TRIP
+                putExtra(EXTRA_ASSIGNMENT_ID, assignmentId)
+                putExtra(EXTRA_RIDE_MODE, rideMode)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 context.startForegroundService(intent)
