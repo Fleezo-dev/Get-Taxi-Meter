@@ -681,7 +681,10 @@ private fun LoadTripDialog(
                 prediction.placeId,
                 listOf(Place.Field.ID, Place.Field.DISPLAY_NAME, Place.Field.FORMATTED_ADDRESS, Place.Field.LOCATION)
             ).setSessionToken(token).build()
-            placesClient?.fetchPlace(request) ?: run { error = "Google Places is not initialized"; return@rememberLauncherForActivityResult }
+            val client = placesClient
+            if (client == null) {
+                error = "Google Places is not initialized"
+            } else client.fetchPlace(request)
                 .addOnSuccessListener { response ->
                     val place = response.place
                     pickup = place.formattedAddress ?: place.displayName ?: prediction.getFullText(null).toString()
