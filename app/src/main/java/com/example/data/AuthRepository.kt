@@ -33,7 +33,7 @@ class AuthRepository {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
 
-    fun isSignedIn(): Boolean = auth.currentUser != null
+    // Anonymous Firebase sessions are used only for installation tracking; they must\n    // never count as an administrator/driver application login.\n    fun isSignedIn(): Boolean = auth.currentUser?.isAnonymous == false
 
     suspend fun signIn(email: String, password: String): AuthResult {
         return try {
