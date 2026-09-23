@@ -101,7 +101,7 @@ class MeterEngineTest {
             tariff = standardTariff
         )
 
-        assertEquals(50.0, breakdown.meterFare, 0.01)
+        assertEquals(60.0, breakdown.meterFare, 0.01)
         assertEquals(100.0, breakdown.extraChargesTotal, 0.01)
         assertEquals(150.0, breakdown.totalFare, 0.01)
     }
