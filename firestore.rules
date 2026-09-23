@@ -37,6 +37,30 @@ service cloud.firestore {
       allow delete: if isMasterAdmin();
     }
 
+
+    match /app_installations/{deviceId} {
+      // Driver/test devices use anonymous auth only to register and update their
+      // own installation record. Master Admin can read the fleet registry.
+      allow create: if signedIn()
+        && request.resource.data.deviceId == deviceId
+        && request.resource.data.ownerUid == request.auth.uid
+        && (
+          request.auth.token.firebase.sign_in_provider == "anonymous"
+          || isMasterAdmin()
+        );
+
+      allow update: if signedIn()
+        && request.resource.data.deviceId == deviceId
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && (
+          request.auth.uid == resource.data.ownerUid
+          || isMasterAdmin()
+        );
+
+      allow get, list: if isMasterAdmin();
+      allow delete: if isMasterAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
