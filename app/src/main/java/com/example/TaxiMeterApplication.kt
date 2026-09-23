@@ -44,10 +44,21 @@ class TaxiMeterApplication : Application() {
 
     private fun initializePlaces() {
         val apiKey = BuildConfig.GOOGLE_MAPS_API_KEY.trim()
-        if (apiKey.isBlank() || apiKey == "YOUR_GOOGLE_MAPS_API_KEY") return
+        if (apiKey.isBlank() || apiKey == "YOUR_GOOGLE_MAPS_API_KEY") {
+            placesInitializationError = "Google Places API key is missing from the APK BuildConfig"
+            android.util.Log.e("GooglePlaces", placesInitializationError!!)
+            return
+        }
+
         runCatching {
-            if (!Places.isInitialized()) Places.initializeWithNewPlacesApiEnabled(this, apiKey)
-        }.onFailure { android.util.Log.w("GooglePlaces", "Places SDK initialization failed", it) }
+            if (!Places.isInitialized()) {
+                Places.initializeWithNewPlacesApiEnabled(this, apiKey)
+            }
+            placesInitializationError = null
+        }.onFailure {
+            placesInitializationError = "${it.javaClass.simpleName}: ${it.message ?: "unknown initialization error"}"
+            android.util.Log.e("GooglePlaces", placesInitializationError!!, it)
+        }
     }
 
     private fun createNotificationChannel() {
@@ -67,6 +78,10 @@ class TaxiMeterApplication : Application() {
     }
 
     companion object {
+        @Volatile
+        var placesInitializationError: String? = null
+            private set
+
         const val NOTIFICATION_CHANNEL_ID = "taxi_meter_channel"
         const val NOTIFICATION_ID = 1001
 
