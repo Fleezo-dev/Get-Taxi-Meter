@@ -195,7 +195,7 @@ fun TariffSettingsScreen(
                     )
 
                     Text(
-                        text = "Waiting has no free minutes. The waiting rate applies from the first chargeable minute.",
+                        text = "CITY RIDE DEFAULTS: ₹80 base • ₹28/km • ₹2/min waiting • 0 km free. Waiting is charged from the first minute.",
                         color = TextMuted,
                         fontSize = 12.sp
                     )
