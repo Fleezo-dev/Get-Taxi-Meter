@@ -32,6 +32,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -74,11 +75,10 @@ fun TariffSettingsScreen(
 
     var tariffName by remember(currentTariff) { mutableStateOf(currentTariff.name) }
     var baseFareText by remember(currentTariff) { mutableStateOf(currentTariff.baseFare.toString()) }
-    var minFareText by remember(currentTariff) { mutableStateOf(currentTariff.minimumFare.toString()) }
     var distanceRateText by remember(currentTariff) { mutableStateOf(currentTariff.distanceRatePerKm.toString()) }
+    var distanceChargeEnabled by remember(currentTariff) { mutableStateOf(currentTariff.distanceChargeEnabled) }
     var waitingRateText by remember(currentTariff) { mutableStateOf(currentTariff.waitingRatePerMinute.toString()) }
     var freeDistanceText by remember(currentTariff) { mutableStateOf(currentTariff.freeDistanceKm.toString()) }
-    var freeWaitingText by remember(currentTariff) { mutableStateOf(currentTariff.freeWaitingMinutes.toString()) }
     var speedThresholdText by remember(currentTariff) { mutableStateOf(currentTariff.waitingSpeedThresholdKmH.toString()) }
     var selectedRounding by remember(currentTariff) { mutableStateOf(currentTariff.fareRounding) }
 
@@ -153,27 +153,16 @@ fun TariffSettingsScreen(
                         keyboardType = KeyboardType.Text
                     )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        TariffInputField(
-                            label = "Base Fare (₹)",
-                            value = baseFareText,
-                            onValueChange = { baseFareText = it },
-                            modifier = Modifier.weight(1f)
-                        )
-                        TariffInputField(
-                            label = "Minimum Fare (₹)",
-                            value = minFareText,
-                            onValueChange = { minFareText = it },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                    TariffInputField(
+                        label = "Base Fare (₹)",
+                        value = baseFareText,
+                        onValueChange = { baseFareText = it }
+                    )
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         TariffInputField(
                             label = "Distance Rate (₹/km)",
@@ -181,31 +170,40 @@ fun TariffSettingsScreen(
                             onValueChange = { distanceRateText = it },
                             modifier = Modifier.weight(1f)
                         )
-                        TariffInputField(
-                            label = "Waiting Rate (₹/min)",
-                            value = waitingRateText,
-                            onValueChange = { waitingRateText = it },
-                            modifier = Modifier.weight(1f)
-                        )
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Charge Per KM",
+                                color = Color.Black,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Switch(
+                                checked = distanceChargeEnabled,
+                                onCheckedChange = { distanceChargeEnabled = it }
+                            )
+                        }
                     }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        TariffInputField(
-                            label = "Free Distance (km)",
-                            value = freeDistanceText,
-                            onValueChange = { freeDistanceText = it },
-                            modifier = Modifier.weight(1f)
-                        )
-                        TariffInputField(
-                            label = "Free Waiting (min)",
-                            value = freeWaitingText,
-                            onValueChange = { freeWaitingText = it },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
+                    TariffInputField(
+                        label = "Waiting Rate (₹/min)",
+                        value = waitingRateText,
+                        onValueChange = { waitingRateText = it }
+                    )
+
+                    TariffInputField(
+                        label = "Free Distance (km)",
+                        value = freeDistanceText,
+                        onValueChange = { freeDistanceText = it }
+                    )
+
+                    Text(
+                        text = "Waiting has no free minutes. The waiting rate applies from the first chargeable minute.",
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
 
                     TariffInputField(
                         label = "Waiting Speed Threshold (km/h)",
@@ -335,22 +333,20 @@ fun TariffSettingsScreen(
             Button(
                 onClick = {
                     val base = baseFareText.toDoubleOrNull() ?: 50.0
-                    val min = minFareText.toDoubleOrNull() ?: 50.0
                     val distRate = distanceRateText.toDoubleOrNull() ?: 18.0
                     val waitRate = waitingRateText.toDoubleOrNull() ?: 2.0
                     val freeDist = freeDistanceText.toDoubleOrNull() ?: 1.5
-                    val freeWait = freeWaitingText.toDoubleOrNull() ?: 5.0
                     val speedThreshold = speedThresholdText.toDoubleOrNull() ?: 5.0
 
                     val updatedTariff = currentTariff.copy(
                         name = if (tariffName.isBlank()) "Standard City Tariff" else tariffName.trim(),
                         baseFare = base,
-                        minimumFare = min,
                         distanceRatePerKm = distRate,
                         waitingRatePerMinute = waitRate,
                         freeDistanceKm = freeDist,
-                        freeWaitingMinutes = freeWait,
                         waitingSpeedThresholdKmH = speedThreshold,
+                        freeWaitingMinutes = 0.0,
+                        distanceChargeEnabled = distanceChargeEnabled,
                         fareRounding = selectedRounding
                     )
 
