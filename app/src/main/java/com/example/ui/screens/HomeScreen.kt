@@ -47,6 +47,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -72,6 +73,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.example.R
 import com.example.data.RideMode
+import com.example.data.LoadedTripAssignment
 import com.example.model.TripStatus
 import com.example.service.FloatingOverlayManager
 import com.example.service.TaxiMeterService
@@ -103,6 +105,11 @@ fun HomeScreen(
     var showMoreMenuDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showRecoveredTripDialog by remember { mutableStateOf(false) }
+    var showLoadTripDialog by remember { mutableStateOf(false) }
+    var loadedTrip by remember { mutableStateOf<LoadedTripAssignment?>(null) }
+    var loadTripOtp by remember { mutableStateOf("") }
+    var loadTripError by remember { mutableStateOf<String?>(null) }
+    var loadingTrip by remember { mutableStateOf(false) }
 
     // Recovery is loaded asynchronously; show the LOAD UNFINISHED TRIP prompt
     // as soon as Room returns an unfinished trip after HomeScreen is composed.
@@ -333,6 +340,106 @@ fun HomeScreen(
             onDismiss = { showParkingDialog = false },
             onAdd = { amount ->
                 viewModel.addExtra(context, "Parking", amount)
+            }
+        )
+    }
+
+    // MANUAL LOADED TRIP DIALOG - this is separate from unfinished-trip recovery.
+    if (showLoadTripDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!loadingTrip) showLoadTripDialog = false },
+            containerColor = Color.White,
+            title = {
+                Text(
+                    text = if (loadedTrip == null) "LOAD TRIP",
+                    else "TRIP READY",
+                    color = Color.Black,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (loadedTrip == null) {
+                        Text("Enter the one-time OTP supplied by the dispatcher/admin.", color = TextSecondary, fontSize = 12.sp)
+                        OutlinedTextField(
+                            value = loadTripOtp,
+                            onValueChange = {
+                                if (it.all(Char::isDigit) && it.length <= 6) {
+                                    loadTripOtp = it
+                                    loadTripError = null
+                                }
+                            },
+                            label = { Text("6-Digit Load OTP") },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.NumberPassword),
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = BrandRed,
+                                unfocusedBorderColor = AppCardBorder
+                            )
+                        )
+                        if (loadTripError != null) {
+                            Text(loadTripError!!, color = BrandRed, fontSize = 12.sp)
+                        }
+                    } else {
+                        val trip = loadedTrip!!
+                        Text("Trip: " + trip.tripReference, color = BrandRed, fontWeight = FontWeight.Bold)
+                        if (trip.customerName.isNotBlank()) Text("Customer: " + trip.customerName, color = TextSecondary, fontSize = 12.sp)
+                        Text("Pickup: " + trip.pickup, color = Color.Black, fontSize = 13.sp)
+                        Text("Drop: " + trip.drop, color = Color.Black, fontSize = 13.sp)
+                        Text("Ride Type: " + trip.rideMode.replace('_', ' '), color = TextSecondary, fontSize = 12.sp)
+                        Text("The trip is loaded to this phone. Tap START LOADED TRIP when you are ready.", color = TextSecondary, fontSize = 12.sp)
+                    }
+                }
+            },
+            confirmButton = {
+                if (loadedTrip == null) {
+                    Button(
+                        onClick = {
+                            if (loadTripOtp.length != 6) {
+                                loadTripError = "Enter the 6-digit OTP"
+                            } else {
+                                loadingTrip = true
+                                loadTripError = null
+                                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
+                                    viewModel.loadTripByOtp(loadTripOtp)
+                                        .onSuccess {
+                                            if (it == null) {
+                                                loadTripError = "Invalid or already used trip OTP"
+                                            } else {
+                                                loadedTrip = it
+                                            }
+                                        }
+                                        .onFailure { loadTripError = it.message ?: "Unable to load trip" }
+                                    loadingTrip = false
+                                }
+                            }
+                        },
+                        enabled = !loadingTrip,
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
+                    ) { Text(if (loadingTrip) "LOADING..." else "LOAD TRIP") }
+                } else {
+                    Button(
+                        onClick = {
+                            val trip = loadedTrip!!
+                            viewModel.setRideMode(
+                                try { RideMode.valueOf(trip.rideMode) } catch (_: Exception) { RideMode.CITY_RIDE }
+                            )
+                            loadedTrip = null
+                            loadTripOtp = ""
+                            showLoadTripDialog = false
+                            startTripForSelectedMode()
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
+                    ) { Text("START LOADED TRIP") }
+                }
+            },
+            dismissButton = {
+                androidx.compose.material3.TextButton(
+                    onClick = { showLoadTripDialog = false },
+                    enabled = !loadingTrip
+                ) { Text("Cancel") }
             }
         )
     }
@@ -617,7 +724,40 @@ fun HomeScreen(
                         }
                     }
 
-                    // 4. Trip History & Receipts
+                    // 4. Load Trip by OTP
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0xFFF8FAFC))
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(10.dp))
+                            .clickable {
+                                showMoreMenuDialog = false
+                                loadTripOtp = ""
+                                loadTripError = null
+                                loadedTrip = null
+                                showLoadTripDialog = true
+                            }
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(BrandRed.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.VpnKey, contentDescription = null, tint = BrandRed, modifier = Modifier.size(20.dp))
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column {
+                            Text("Load Trip", color = Color(0xFF0F172A), fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold)
+                            Text("Enter dispatcher OTP to receive an assigned trip", color = TextSecondary, fontSize = 11.sp)
+                        }
+                    }
+
+                    // 5. Trip History & Receipts
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
