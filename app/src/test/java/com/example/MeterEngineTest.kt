@@ -96,12 +96,12 @@ class MeterEngineTest {
 
         val breakdown = MeterEngine.calculateFare(
             distanceMeters = 1500.0, // exactly free distance
-            waitingDurationSeconds = 300L, // exactly free waiting
+            waitingDurationSeconds = 0L, // waiting is covered by testWaitingFareFromFirstMinute
             extras = extras,
             tariff = standardTariff
         )
 
-        assertEquals(60.0, breakdown.meterFare, 0.01)
+        assertEquals(50.0, breakdown.meterFare, 0.01)
         assertEquals(100.0, breakdown.extraChargesTotal, 0.01)
         assertEquals(150.0, breakdown.totalFare, 0.01)
     }
