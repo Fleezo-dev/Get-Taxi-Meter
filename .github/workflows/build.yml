@@ -93,13 +93,8 @@ jobs:
       - name: Build Debug APK
         run: ./gradlew --no-daemon assembleDebug
 
-      - name: Print debug APK signing SHA-1
-        shell: bash
-        run: |
-          set -e
-          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
-          test -x "$APKSIGNER"
-          "$APKSIGNER" verify --print-certs app/build/outputs/apk/debug/app-debug.apk | grep -E 'Signer #1 certificate SHA-1 digest:'
+      - name: Print debug signing SHA-1
+        run: ./gradlew --no-daemon :app:signingReport
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
