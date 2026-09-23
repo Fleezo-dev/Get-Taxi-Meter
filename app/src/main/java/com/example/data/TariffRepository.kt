@@ -2,7 +2,6 @@ package com.example.data
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.example.model.FareRounding
 import com.example.model.Tariff
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,20 +18,14 @@ class TariffRepository(context: Context) {
     fun loadTariff(): Tariff {
         val id = prefs.getString("tariff_id", "standard_day") ?: "standard_day"
         val name = prefs.getString("tariff_name", "Standard City Tariff") ?: "Standard City Tariff"
-        val baseFare = prefs.getFloat("base_fare", 50.0f).toDouble()
+        val baseFare = prefs.getFloat("base_fare", 80.0f).toDouble()
         val minFare = prefs.getFloat("min_fare", 0.0f).toDouble()
-        val distanceRate = prefs.getFloat("distance_rate", 18.0f).toDouble()
+        val distanceRate = prefs.getFloat("distance_rate", 28.0f).toDouble()
         val waitingRate = prefs.getFloat("waiting_rate", 2.0f).toDouble()
-        val freeDistance = prefs.getFloat("free_distance", 1.5f).toDouble()
+        val freeDistance = prefs.getFloat("free_distance", 0.0f).toDouble()
         val freeWaiting = 0.0
         val speedThreshold = prefs.getFloat("speed_threshold", 5.0f).toDouble()
         val distanceChargeEnabled = prefs.getBoolean("distance_charge_enabled", true)
-        val roundingStr = prefs.getString("fare_rounding", FareRounding.NEAREST_ONE.name)
-        val rounding = try {
-            FareRounding.valueOf(roundingStr ?: FareRounding.NEAREST_ONE.name)
-        } catch (e: Exception) {
-            FareRounding.NEAREST_ONE
-        }
         val nightSurcharge = prefs.getFloat("night_surcharge", 1.0f).toDouble()
 
         return Tariff(
@@ -46,7 +39,6 @@ class TariffRepository(context: Context) {
             freeWaitingMinutes = freeWaiting,
             waitingSpeedThresholdKmH = speedThreshold,
             distanceChargeEnabled = distanceChargeEnabled,
-            fareRounding = rounding,
             nightSurchargeMultiplier = nightSurcharge
         )
     }
@@ -63,7 +55,6 @@ class TariffRepository(context: Context) {
             putFloat("free_waiting", 0.0f)
             putBoolean("distance_charge_enabled", tariff.distanceChargeEnabled)
             putFloat("speed_threshold", tariff.waitingSpeedThresholdKmH.toFloat())
-            putString("fare_rounding", tariff.fareRounding.name)
             putFloat("night_surcharge", tariff.nightSurchargeMultiplier.toFloat())
             apply()
         }
