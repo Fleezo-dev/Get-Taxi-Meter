@@ -375,7 +375,13 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
         customerName: String,
         customerMobile: String,
         pickup: String,
+        pickupLatitude: Double?,
+        pickupLongitude: Double?,
+        pickupPlaceId: String?,
         drop: String,
+        dropLatitude: Double?,
+        dropLongitude: Double?,
+        dropPlaceId: String?,
         rideMode: RideMode
     ): Result<Pair<LoadedTripAssignment, String>> {
         return tripAssignmentRepo.createAssignment(
@@ -383,7 +389,13 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
             customerName = customerName,
             customerMobile = customerMobile,
             pickup = pickup,
+            pickupLatitude = pickupLatitude,
+            pickupLongitude = pickupLongitude,
+            pickupPlaceId = pickupPlaceId,
             drop = drop,
+            dropLatitude = dropLatitude,
+            dropLongitude = dropLongitude,
+            dropPlaceId = dropPlaceId,
             rideMode = rideMode.name
         )
     }
