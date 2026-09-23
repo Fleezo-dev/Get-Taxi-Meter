@@ -63,6 +63,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.BuildConfig
+import com.example.TaxiMeterApplication
 import com.example.data.AppRole
 import com.example.data.DeviceIdManager
 import com.example.data.DeviceInstallation
@@ -751,7 +752,8 @@ private fun LoadTripDialog(
     fun launchAutocomplete(launcher: androidx.activity.result.ActivityResultLauncher<android.content.Intent>, currentValue: String) {
         val apiKey = BuildConfig.GOOGLE_MAPS_API_KEY.trim()
         if (apiKey.isBlank() || apiKey == "YOUR_GOOGLE_MAPS_API_KEY" || !Places.isInitialized()) {
-            error = "Google Places is not configured. Add GOOGLE_MAPS_API_KEY to the app secrets."
+            error = TaxiMeterApplication.placesInitializationError
+                ?: "Google Places is not initialized. Check the API key, Places API (New), billing, and Android app restriction."
             return
         }
         runCatching { launcher.launch(autocompleteIntent(currentValue)) }
