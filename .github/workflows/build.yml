@@ -39,22 +39,31 @@ jobs:
 
       - name: Verify generated Firebase Android resources
         run: |
-          ./gradlew processDebugGoogleServices
-          test -s app/build/generated/res/google-services/debug/values/values.xml
-          python3 - <<'PY'
-          import hashlib, json, re
+          ./gradlew --no-daemon processDebugGoogleServices
+          FILE="app/build/generated/res/google-services/debug/values/values.xml"
+          test -s "$FILE"
+          python3 - "$FILE" <<'PY'
+          import hashlib, json, re, sys
+          path=sys.argv[1]
           source=json.load(open("app/google-services.json"))
           key=source["client"][0]["api_key"][0]["current_key"]
-          xml=open("app/build/generated/res/google-services/debug/values/values.xml").read()
-          app_id=re.search(r'<string name="google_app_id"[^>]*>([^<]+)</string>', xml).group(1)
-          project_id=re.search(r'<string name="project_id"[^>]*>([^<]+)</string>', xml).group(1)
-          generated_key=re.search(r'<string name="google_api_key"[^>]*>([^<]+)</string>', xml).group(1)
-          assert app_id == "1:905902052873:android:1bf6d3ea58532b9ab04ad8"
-          assert project_id == "get-taxi-meter-productio-b0cea"
-          assert generated_key == key
+          xml=open(path, encoding="utf-8").read()
+          def get(name):
+              m=re.search(r'<string\s+name="' + re.escape(name) + r'"[^>]*>(.*?)</string>', xml, re.S)
+              if not m:
+                  raise SystemExit("Missing generated resource: " + name)
+              return m.group(1)
+          app_id=get("google_app_id")
+          project_id=get("project_id")
+          generated_key=get("google_api_key")
+          if app_id != "1:905902052873:android:1bf6d3ea58532b9ab04ad8":
+              raise SystemExit("Generated google_app_id does not match Firebase Android app.")
+          if project_id != "get-taxi-meter-productio-b0cea":
+              raise SystemExit("Generated project_id does not match Firebase project.")
+          if generated_key != key:
+              raise SystemExit("Generated google_api_key does not match google-services.json.")
           print("Firebase generated resources match google-services.json.")
           print("google_api_key SHA256:", hashlib.sha256(generated_key.encode()).hexdigest())
-          PY
 
       - name: Validate Firebase Authentication API key
         run: |
@@ -63,7 +72,7 @@ jobs:
           echo "$RESPONSE" | python3 -c 'import json,sys; d=json.load(sys.stdin); msg=d.get("error",{}).get("message",""); print("Firebase Auth diagnostic response:", msg); sys.exit(1 if msg in ("API_KEY_INVALID","INVALID_API_KEY") else 0)'
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: ./gradlew --no-daemon assembleDebug
 
       - name: Upload Debug APK Artifact
         uses: actions/upload-artifact@v4
