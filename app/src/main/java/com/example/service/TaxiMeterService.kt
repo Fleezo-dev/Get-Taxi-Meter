@@ -19,6 +19,7 @@ import com.example.TaxiMeterApplication
 import com.example.data.TripEntity
 import com.example.data.RideMode
 import com.example.data.TripAssignmentRepository
+import com.example.data.CompletedTripRepository
 import com.example.engine.MeterEngine
 import com.example.model.ExtraCharge
 import com.example.model.Tariff
@@ -61,6 +62,7 @@ class TaxiMeterService : Service() {
     private var motionState = MeterEngine.MotionState(isMoving = false, consecutiveStopTicks = 0, consecutiveMoveTicks = 0)
     private var lastDbSyncTimeMs: Long = 0L
     private val tripAssignmentRepository = TripAssignmentRepository()
+    private val completedTripRepository = CompletedTripRepository()
     private var activeAssignmentId: String? = null
 
     override fun onCreate() {
@@ -552,6 +554,14 @@ class TaxiMeterService : Service() {
         serviceScope.launch(Dispatchers.IO) {
             val entity = TripEntity.fromTripState(completedState)
             TaxiMeterApplication.instance.database.tripDao().updateTrip(entity)
+            completedTripRepository.upload(completedState, activeAssignmentId)
+                .onFailure {
+                    android.util.Log.w(
+                        "CompletedTripSync",
+                        "Unable to upload completed trip; kept locally",
+                        it
+                    )
+                }
         }
 
         releaseWakeLock()
