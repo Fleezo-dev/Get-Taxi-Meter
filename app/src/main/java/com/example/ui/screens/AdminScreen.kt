@@ -117,7 +117,6 @@ fun AdminScreen(
     var generatedCode by remember { mutableStateOf<String?>(null) }
     var isGenerating by remember { mutableStateOf(false) }
     var showLoadTripDialog by remember { mutableStateOf(false) }
-    var selectedInstallation by remember { mutableStateOf<DeviceInstallation?>(null) }
 
     val scrollState = rememberScrollState()
 
@@ -325,7 +324,41 @@ fun AdminScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // 1. DEVICE / INSTALLATION MONITOR
+            // 1. BROADCAST / UNIVERSAL TRIP DISPATCH
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = androidx.compose.foundation.BorderStroke(1.dp, AppCardBorder)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "CREATE & BROADCAST TRIP",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Universal trip — no driver or device is selected. The first eligible driver who enters the Trip Access OTP claims it.",
+                        fontSize = 11.5.sp,
+                        color = TextSecondary
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = { showLoadTripDialog = true },
+                        modifier = Modifier.fillMaxWidth().height(44.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandRed),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text("CREATE NEW TRIP & GENERATE OTP", fontSize = 12.5.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 2. DEVICE / INSTALLATION MONITOR
             Card(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(14.dp),
@@ -362,14 +395,14 @@ fun AdminScreen(
                         installationsLoading && installations.isEmpty() -> CircularProgressIndicator(color = BrandRed, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                         installations.isEmpty() -> Text("No installations have reported yet.", fontSize = 12.sp, color = TextSecondary)
                         else -> installations.forEachIndexed { index, installation ->
-                            InstallationMonitorRow(installation) { selectedInstallation = installation; showLoadTripDialog = true }
+                            InstallationMonitorRow(installation)
                             if (index < installations.lastIndex) HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = AppCardBorder)
                         }
                     }
                 }
             }
 
-            if (showLoadTripDialog && selectedInstallation != null) {
+            if (showLoadTripDialog) {
                 LoadTripDialog(
                     viewModel = viewModel,
                     onDismiss = { showLoadTripDialog = false },
@@ -389,7 +422,7 @@ fun AdminScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "1. GENERATE ACTIVATION CODE",
+                        text = "3. GENERATE ACTIVATION CODE",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
@@ -604,7 +637,7 @@ fun AdminScreen(
 }
 
 @Composable
-private fun InstallationMonitorRow(installation: DeviceInstallation, onLoadTrip: () -> Unit) {
+private fun InstallationMonitorRow(installation: DeviceInstallation) {
     val statusText = when (installation.activationStatus.uppercase()) {
         "ACTIVE" -> "ACTIVE"
         "PENDING" -> "PENDING"
@@ -628,16 +661,6 @@ private fun InstallationMonitorRow(installation: DeviceInstallation, onLoadTrip:
         Spacer(modifier = Modifier.height(3.dp))
         Text(text = "First seen: ${installation.firstSeenAt?.let { formatInstallationTime(it) } ?: "Waiting for sync"}", fontSize = 10.5.sp, color = TextSecondary)
         Text(text = "Last seen: " + (installation.lastSeenAt?.let { formatInstallationTime(it) } ?: "Waiting for sync") + "  •  v" + installation.appVersion.ifBlank { "—" }, fontSize = 10.5.sp, color = TextSecondary)
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            onClick = onLoadTrip,
-            enabled = installation.activationStatus.equals("ACTIVE", ignoreCase = true),
-            modifier = Modifier.fillMaxWidth().height(38.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = BrandRed),
-            shape = RoundedCornerShape(8.dp)
-        ) {
-            Text("CREATE TRIP & GENERATE OTP", fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
-        }
     }
 }
 
