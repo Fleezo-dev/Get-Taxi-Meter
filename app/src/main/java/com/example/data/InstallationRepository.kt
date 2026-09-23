@@ -9,6 +9,7 @@ import kotlinx.coroutines.tasks.await
 
 data class DeviceInstallation(
     val deviceId: String,
+    val ownerUid: String,
     val driverName: String,
     val mobileNumber: String,
     val vehicleNumber: String,
@@ -120,6 +121,7 @@ class InstallationRepository {
             firestore.collection(COLLECTION).get().await().documents.map { doc ->
                 DeviceInstallation(
                     deviceId = doc.getString("deviceId") ?: doc.id,
+                    ownerUid = doc.getString("ownerUid").orEmpty(),
                     driverName = doc.getString("driverName").orEmpty(),
                     mobileNumber = doc.getString("mobileNumber").orEmpty(),
                     vehicleNumber = doc.getString("vehicleNumber").orEmpty(),
