@@ -50,6 +50,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -82,6 +83,7 @@ import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
 import com.example.viewmodel.MeterViewModel
 import com.example.viewmodel.Screen
+import kotlinx.coroutines.delay
 
 @Composable
 fun SetupChecklistScreen(
@@ -131,6 +133,16 @@ fun SetupChecklistScreen(
         )
     }
 
+    // Automatic first-time setup flow. Runtime permissions are requested as
+    // Android system dialogs; special permissions are opened through guided
+    // Android Settings screens because Android does not allow apps to grant
+    // those permissions silently.
+    var locationPromptShown by remember { mutableStateOf(false) }
+    var notificationPromptShown by remember { mutableStateOf(false) }
+    var backgroundGuideShown by remember { mutableStateOf(false) }
+    var batteryGuideShown by remember { mutableStateOf(false) }
+    var overlayGuideShown by remember { mutableStateOf(false) }
+
     fun refreshChecks() {
         hasFineLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
         hasBackgroundLocation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -172,11 +184,64 @@ fun SetupChecklistScreen(
         refreshChecks()
     }
 
+    // Automatically start the safe portion of setup after activation.
+    // Background location is deliberately handled separately because Android
+    // 11+ requires the user to enable "Allow all the time" in Settings.
+    LaunchedEffect(
+        isActivated,
+        hasFineLocation,
+        hasNotificationPermission,
+        hasBackgroundLocation,
+        isBatteryOptimizedIgnored,
+        canDrawOverlay
+    ) {
+        if (!isActivated) return@LaunchedEffect
+
+        when {
+            !hasFineLocation && !locationPromptShown -> {
+                locationPromptShown = true
+                delay(350)
+                locationLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+            hasFineLocation && !hasNotificationPermission && !notificationPromptShown -> {
+                notificationPromptShown = true
+                delay(350)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    notificationLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+            hasFineLocation && hasNotificationPermission &&
+                !hasBackgroundLocation && !backgroundGuideShown -> {
+                backgroundGuideShown = true
+                showSpecialSetupDialog = "background"
+            }
+            hasFineLocation && hasNotificationPermission &&
+                (hasBackgroundLocation || backgroundGuideShown) &&
+                !isBatteryOptimizedIgnored && !batteryGuideShown -> {
+                batteryGuideShown = true
+                showSpecialSetupDialog = "battery"
+            }
+            hasFineLocation && hasNotificationPermission &&
+                (hasBackgroundLocation || backgroundGuideShown) &&
+                (isBatteryOptimizedIgnored || batteryGuideShown) &&
+                !canDrawOverlay && !overlayGuideShown -> {
+                overlayGuideShown = true
+                showSpecialSetupDialog = "overlay"
+            }
+        }
+    }
+
     // Android may block overlay access for sideloaded apps behind the
     // "Allow restricted settings" security step. Keep the driver in a
     // guided flow instead of expecting them to discover that setting.
     var showOverlayGuide by remember { mutableStateOf(false) }
     var restrictedSettingsStepOpened by remember { mutableStateOf(false) }
+    var showSpecialSetupDialog by remember { mutableStateOf<String?>(null) }
 
     fun openAppDetailsSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
@@ -195,6 +260,64 @@ fun SetupChecklistScreen(
     }
 
     val scrollState = rememberScrollState()
+
+    showSpecialSetupDialog?.let { step ->
+        val title = when (step) {
+            "background" -> "Background Location"
+            "battery" -> "Battery Optimization"
+            else -> "Floating Meter Overlay"
+        }
+        val message = when (step) {
+            "background" ->
+                "For continuous taxi-meter GPS tracking, Android needs Location access set to 'Allow all the time'. Android 11 and newer requires this choice in Settings."
+            "battery" ->
+                "Allow Get Taxi Meter to run without battery optimization so the meter can continue tracking while the screen is off."
+            else ->
+                "Allow Get Taxi Meter to display the floating meter over other apps. This is required for the floating fare meter."
+        }
+        AlertDialog(
+            onDismissRequest = { showSpecialSetupDialog = null },
+            title = { Text(title, fontWeight = FontWeight.Bold, color = TextPrimary) },
+            text = { Text(message, color = TextSecondary, fontSize = 14.sp, lineHeight = 20.sp) },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showSpecialSetupDialog = null
+                        when (step) {
+                            "background" -> {
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
+                                context.startActivity(intent)
+                            }
+                            "battery" -> {
+                                try {
+                                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                        data = Uri.parse("package:${context.packageName}")
+                                    }
+                                    context.startActivity(intent)
+                                } catch (_: Exception) {
+                                    context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                                }
+                            }
+                            "overlay" -> {
+                                restrictedSettingsStepOpened = false
+                                showOverlayGuide = true
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
+                ) {
+                    Text("OPEN SETTINGS", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSpecialSetupDialog = null }) {
+                    Text("LATER", color = TextSecondary)
+                }
+            }
+        )
+    }
 
     if (showOverlayGuide) {
         AlertDialog(
