@@ -39,7 +39,9 @@ data class TripEntity(
     val tariffWaitingRate: Double,
     val tariffFreeDistanceKm: Double,
     val tariffFreeWaitingMin: Double,
-    // Legacy Room column retained for database compatibility; fare rounding is removed from the app.\n    val tariffRounding: String = "",\n    val lastGpsTimestamp: Long,
+    // Legacy Room column retained for database compatibility; fare rounding is removed from the app.
+    val tariffRounding: String = "",
+    val lastGpsTimestamp: Long,
     val isRecovered: Boolean = false
 ) {
     fun toTripState(): TripState {
