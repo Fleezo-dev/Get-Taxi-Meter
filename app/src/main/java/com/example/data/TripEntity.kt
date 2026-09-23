@@ -65,7 +65,7 @@ data class TripEntity(
             chargeableWaitingMinutes = kotlin.math.max(0.0, (waitingDurationSeconds / 60.0) - tariffFreeWaitingMin),
             waitingFare = waitingFare,
             subtotalBeforeMin = baseFare + distanceFare + waitingFare,
-            minFareApplied = currentFare == tariffMinFare && (baseFare + distanceFare + waitingFare) < tariffMinFare,
+            minFareApplied = false,
             meterFare = currentFare - extraChargesTotal,
             extraChargesTotal = extraChargesTotal,
             totalFare = currentFare
