@@ -41,9 +41,11 @@ jobs:
           set -e
           echo "Generated Firebase resource files:"
           find app/build/generated -type f -print | sort || true
-          FILE=$(find app/build/generated -type f -path '*/google-services/*/values/values.xml' -print -quit)
+          FILE=$(find app/build/generated -type f -name 'values.xml' -path '*/processDebugGoogleServices/*' -print -quit)
           if [ -z "$FILE" ]; then
-            echo "ERROR: google-services values.xml was not generated"
+            echo "ERROR: Firebase google-services values.xml was not generated"
+            echo "Generated directory tree:"
+            find app/build/generated/res -maxdepth 6 -type f -print || true
             exit 1
           fi
           echo "Using generated file: $FILE"
