@@ -703,7 +703,7 @@ private fun LoadTripDialog(
     val dropLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val intent = result.data
         if (result.resultCode == PlaceAutocompleteActivity.RESULT_OK && intent != null) {
-            val prediction = PlaceAutocomplete.getPredictionFromIntent(intent)
+            val prediction = PlaceAutocomplete.getPredictionFromIntent(intent) ?: return@rememberLauncherForActivityResult
             val token = PlaceAutocomplete.getSessionTokenFromIntent(intent)
             val request = FetchPlaceRequest.builder(
                 prediction.placeId,
