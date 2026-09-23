@@ -366,12 +366,11 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     suspend fun loadTripByOtp(otp: String): Result<LoadedTripAssignment?> {
-        return tripAssignmentRepo.claimByOtp(otp)
+        val deviceId = DeviceIdManager.getDeviceId(getApplication())
+        return tripAssignmentRepo.claimByOtp(otp, deviceId)
     }
 
     suspend fun createTripAssignment(
-        deviceId: String,
-        ownerUid: String,
         tripReference: String,
         customerName: String,
         customerMobile: String,
@@ -380,8 +379,6 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
         rideMode: RideMode
     ): Result<Pair<LoadedTripAssignment, String>> {
         return tripAssignmentRepo.createAssignment(
-            deviceId = deviceId,
-            ownerUid = ownerUid,
             tripReference = tripReference,
             customerName = customerName,
             customerMobile = customerMobile,
