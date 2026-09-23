@@ -62,13 +62,19 @@ jobs:
           RESPONSE_FILE=/tmp/firebase-auth-response.json
           HTTP_CODE=$(curl -sS -o "$RESPONSE_FILE" -w "%{http_code}"             -X POST             -H "Content-Type: application/json"             -d '{"email":"firebase-key-diagnostic@example.invalid","password":"NotARealPassword123!","returnSecureToken":true}'             "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$KEY")
           MESSAGE=$(jq -r '.error.message // "NO_ERROR"' "$RESPONSE_FILE")
+          STATUS=$(jq -r '.error.status // "NO_STATUS"' "$RESPONSE_FILE")
           echo "Firebase Auth HTTP status: $HTTP_CODE"
+          echo "Firebase Auth error status: $STATUS"
           echo "Firebase Auth diagnostic: $MESSAGE"
-          if [ "$MESSAGE" = "API_KEY_INVALID" ] || [ "$MESSAGE" = "INVALID_API_KEY" ]; then
+          if [ "$HTTP_CODE" -ge 400 ] &&              { [[ "$MESSAGE" == *"API key not valid"* ]] ||                [ "$MESSAGE" = "API_KEY_INVALID" ] ||                [ "$MESSAGE" = "INVALID_API_KEY" ]; }; then
             echo "RESULT: FIREBASE API KEY IS REJECTED BY IDENTITY TOOLKIT"
             exit 1
           fi
-          echo "RESULT: API KEY WAS ACCEPTED BY IDENTITY TOOLKIT"
+          if [ "$HTTP_CODE" -ge 400 ] && [ "$STATUS" = "INVALID_ARGUMENT" ]; then
+            echo "RESULT: FIREBASE AUTH REJECTED THE REQUEST"
+            exit 1
+          fi
+          echo "RESULT: FIREBASE API KEY WAS NOT REJECTED"
 
       - name: Build Debug APK
         run: ./gradlew --no-daemon assembleDebug
