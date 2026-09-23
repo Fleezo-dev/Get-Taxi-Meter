@@ -22,16 +22,13 @@ data class LoadedTripAssignment(
 )
 
 class TripAssignmentRepository {
-
     companion object {
         private const val COLLECTION = "trip_assignments"
         private const val STATUS_ASSIGNED = "ASSIGNED"
         private const val STATUS_CLAIMED = "CLAIMED"
         private const val OTP_LENGTH = 6
-
         private fun hashOtp(otp: String): String =
-            MessageDigest.getInstance("SHA-256")
-                .digest(otp.toByteArray(Charsets.UTF_8))
+            MessageDigest.getInstance("SHA-256").digest(otp.toByteArray(Charsets.UTF_8))
                 .joinToString("") { "%02x".format(it) }
     }
 
@@ -39,151 +36,123 @@ class TripAssignmentRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val secureRandom = SecureRandom()
 
+    // Universal trip: the dispatcher creates it without selecting a driver.
     suspend fun createAssignment(
-        deviceId: String,
-        ownerUid: String,
         tripReference: String,
         customerName: String,
         customerMobile: String,
         pickup: String,
         drop: String,
         rideMode: String
-    ): Result<Pair<LoadedTripAssignment, String>> {
-        return runCatching {
-            require(deviceId.isNotBlank()) { "Driver device is required" }
-            require(ownerUid.isNotBlank()) { "Driver authentication owner is missing" }
-            require(pickup.isNotBlank()) { "Pickup is required" }
-            require(drop.isNotBlank()) { "Drop is required" }
+    ): Result<Pair<LoadedTripAssignment, String>> = runCatching {
+        require(auth.currentUser?.isAnonymous == false) { "Administrator authentication required" }
+        require(pickup.isNotBlank()) { "Pickup is required" }
+        require(drop.isNotBlank()) { "Drop is required" }
 
-            val otp = buildOtp()
-            val ref = firestore.collection(COLLECTION).document(UUID.randomUUID().toString())
-            val tripRef = tripReference.ifBlank { "TRIP-" + ref.id.take(6).uppercase() }
-            val data = hashMapOf<String, Any>(
-                "assignmentId" to ref.id,
-                "deviceId" to deviceId,
-                "ownerUid" to ownerUid,
-                "tripReference" to tripRef,
-                "customerName" to customerName,
-                "customerMobile" to customerMobile,
-                "pickup" to pickup,
-                "drop" to drop,
-                "rideMode" to rideMode,
-                "otpHash" to hashOtp(otp),
-                "status" to STATUS_ASSIGNED,
-                "createdAt" to FieldValue.serverTimestamp()
-            )
-            ref.set(data).await()
-
-            Pair(
-                LoadedTripAssignment(
-                    assignmentId = ref.id,
-                    deviceId = deviceId,
-                    ownerUid = ownerUid,
-                    tripReference = tripRef,
-                    customerName = customerName,
-                    customerMobile = customerMobile,
-                    pickup = pickup,
-                    drop = drop,
-                    rideMode = rideMode,
-                    status = STATUS_ASSIGNED
-                ),
-                otp
-            )
+        val otp = buildOtp()
+        val tripId = hashOtp(otp)
+        val ref = firestore.collection(COLLECTION).document(tripId)
+        val tripRef = tripReference.ifBlank {
+            "TRIP-" + UUID.randomUUID().toString().take(6).uppercase()
         }
+
+        ref.set(hashMapOf<String, Any>(
+            "assignmentId" to tripId,
+            "tripReference" to tripRef,
+            "customerName" to customerName,
+            "customerMobile" to customerMobile,
+            "pickup" to pickup,
+            "drop" to drop,
+            "rideMode" to rideMode,
+            "otpHash" to tripId,
+            "status" to STATUS_ASSIGNED,
+            "createdAt" to FieldValue.serverTimestamp()
+        )).await()
+
+        Pair(
+            LoadedTripAssignment(tripId, "", "", tripRef, customerName, customerMobile, pickup, drop, rideMode, STATUS_ASSIGNED),
+            otp
+        )
     }
 
-    suspend fun markStarted(assignmentId: String): Result<Unit> {
-        return runCatching {
-            val user = auth.currentUser ?: throw IllegalStateException("Driver authentication required")
-            require(user.isAnonymous) { "Driver device authentication required" }
-            val ref = firestore.collection(COLLECTION).document(assignmentId)
-            firestore.runTransaction { transaction ->
-                val latest = transaction.get(ref)
-                require(latest.exists()) { "Trip assignment not found" }
-                require(latest.getString("ownerUid") == user.uid) { "Trip assignment belongs to another device" }
-                require(latest.getString("status") == STATUS_CLAIMED) { "Trip is not in CLAIMED state" }
-                transaction.update(ref, mapOf(
-                    "status" to "STARTED",
-                    "startedAt" to FieldValue.serverTimestamp(),
-                    "startedByUid" to user.uid
-                ))
-                null
-            }.await()
-        }
+    // Universal OTP claim. Firestore transaction makes the first driver win.
+    suspend fun claimByOtp(otp: String, deviceId: String): Result<LoadedTripAssignment?> = runCatching {
+        val user = auth.currentUser ?: auth.signInAnonymously().await().user
+        requireNotNull(user) { "Unable to authenticate this device" }
+        require(user.isAnonymous) { "Driver device authentication required" }
+
+        val cleanOtp = otp.filter(Char::isDigit)
+        if (cleanOtp.length != OTP_LENGTH) return@runCatching null
+
+        val tripId = hashOtp(cleanOtp)
+        val ref = firestore.collection(COLLECTION).document(tripId)
+
+        firestore.runTransaction { transaction ->
+            val latest = transaction.get(ref)
+            if (!latest.exists()) throw IllegalStateException("Trip not found or OTP is invalid")
+            if (latest.getString("status") != STATUS_ASSIGNED) {
+                throw IllegalStateException("This trip has already been loaded")
+            }
+            transaction.update(ref, mapOf(
+                "status" to STATUS_CLAIMED,
+                "claimedAt" to FieldValue.serverTimestamp(),
+                "claimedByUid" to user.uid,
+                "ownerUid" to user.uid,
+                "deviceId" to deviceId
+            ))
+            null
+        }.await()
+
+        val doc = ref.get().await()
+        LoadedTripAssignment(
+            assignmentId = tripId,
+            deviceId = deviceId,
+            ownerUid = user.uid,
+            tripReference = doc.getString("tripReference").orEmpty(),
+            customerName = doc.getString("customerName").orEmpty(),
+            customerMobile = doc.getString("customerMobile").orEmpty(),
+            pickup = doc.getString("pickup").orEmpty(),
+            drop = doc.getString("drop").orEmpty(),
+            rideMode = doc.getString("rideMode") ?: "CITY_RIDE",
+            status = STATUS_CLAIMED
+        )
     }
 
-    suspend fun markCompleted(assignmentId: String): Result<Unit> {
-        return runCatching {
-            val user = auth.currentUser ?: throw IllegalStateException("Driver authentication required")
-            require(user.isAnonymous) { "Driver device authentication required" }
-            val ref = firestore.collection(COLLECTION).document(assignmentId)
-            firestore.runTransaction { transaction ->
-                val latest = transaction.get(ref)
-                require(latest.exists()) { "Trip assignment not found" }
-                require(latest.getString("ownerUid") == user.uid) { "Trip assignment belongs to another device" }
-                require(latest.getString("status") == "STARTED") { "Trip is not in STARTED state" }
-                transaction.update(ref, mapOf(
-                    "status" to "COMPLETED",
-                    "completedAt" to FieldValue.serverTimestamp(),
-                    "completedByUid" to user.uid
-                ))
-                null
-            }.await()
-        }
+    suspend fun markStarted(assignmentId: String): Result<Unit> = runCatching {
+        val user = auth.currentUser ?: throw IllegalStateException("Driver authentication required")
+        require(user.isAnonymous) { "Driver device authentication required" }
+        val ref = firestore.collection(COLLECTION).document(assignmentId)
+        firestore.runTransaction { transaction ->
+            val latest = transaction.get(ref)
+            require(latest.exists()) { "Trip assignment not found" }
+            require(latest.getString("ownerUid") == user.uid) { "Trip assignment belongs to another device" }
+            require(latest.getString("status") == STATUS_CLAIMED) { "Trip is not in CLAIMED state" }
+            transaction.update(ref, mapOf(
+                "status" to "STARTED",
+                "startedAt" to FieldValue.serverTimestamp(),
+                "startedByUid" to user.uid
+            ))
+            null
+        }.await()
     }
 
-    suspend fun claimByOtp(otp: String): Result<LoadedTripAssignment?> {
-        return runCatching {
-            val user = auth.currentUser ?: auth.signInAnonymously().await().user
-            requireNotNull(user) { "Unable to authenticate this device" }
-            require(user.isAnonymous) { "Driver device authentication required" }
-
-            val cleanOtp = otp.filter(Char::isDigit)
-            if (cleanOtp.length != OTP_LENGTH) return@runCatching null
-
-            val snapshot = firestore.collection(COLLECTION)
-                .whereEqualTo("ownerUid", user.uid)
-                .whereEqualTo("status", STATUS_ASSIGNED)
-                .limit(10)
-                .get()
-                .await()
-
-            val match = snapshot.documents.firstOrNull { doc ->
-                doc.getString("otpHash") == hashOtp(cleanOtp)
-            } ?: return@runCatching null
-
-            val ref = match.reference
-            firestore.runTransaction { transaction ->
-                val latest = transaction.get(ref)
-                if (!latest.exists() || latest.getString("status") != STATUS_ASSIGNED) {
-                    throw IllegalStateException("This trip has already been loaded")
-                }
-                transaction.update(
-                    ref,
-                    mapOf(
-                        "status" to STATUS_CLAIMED,
-                        "claimedAt" to FieldValue.serverTimestamp(),
-                        "claimedByUid" to user.uid
-                    )
-                )
-                null
-            }.await()
-
-            LoadedTripAssignment(
-                assignmentId = match.id,
-                deviceId = match.getString("deviceId").orEmpty(),
-                ownerUid = match.getString("ownerUid").orEmpty(),
-                tripReference = match.getString("tripReference").orEmpty(),
-                customerName = match.getString("customerName").orEmpty(),
-                customerMobile = match.getString("customerMobile").orEmpty(),
-                pickup = match.getString("pickup").orEmpty(),
-                drop = match.getString("drop").orEmpty(),
-                rideMode = match.getString("rideMode") ?: "CITY_RIDE",
-                status = STATUS_CLAIMED
-            )
-        }
+    suspend fun markCompleted(assignmentId: String): Result<Unit> = runCatching {
+        val user = auth.currentUser ?: throw IllegalStateException("Driver authentication required")
+        require(user.isAnonymous) { "Driver device authentication required" }
+        val ref = firestore.collection(COLLECTION).document(assignmentId)
+        firestore.runTransaction { transaction ->
+            val latest = transaction.get(ref)
+            require(latest.exists()) { "Trip assignment not found" }
+            require(latest.getString("ownerUid") == user.uid) { "Trip assignment belongs to another device" }
+            require(latest.getString("status") == "STARTED") { "Trip is not in STARTED state" }
+            transaction.update(ref, mapOf(
+                "status" to "COMPLETED",
+                "completedAt" to FieldValue.serverTimestamp(),
+                "completedByUid" to user.uid
+            ))
+            null
+        }.await()
     }
 
-    private fun buildOtp(): String =
-        (100000 + secureRandom.nextInt(900000)).toString()
+    private fun buildOtp(): String = (100000 + secureRandom.nextInt(900000)).toString()
 }
