@@ -233,6 +233,12 @@ fun TariffSettingsScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
+                    Text(
+                        text = "HOURLY RENTAL DEFAULTS: ₹350/hour • 10 km free/hour • ₹20/km additional.",
+                        color = TextMuted,
+                        fontSize = 12.sp
+                    )
+
                     TariffInputField(
                         label = "Free Distance / Hour (km)",
                         value = hourlyFreeKmText,
