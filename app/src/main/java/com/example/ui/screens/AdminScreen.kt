@@ -40,6 +40,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -648,6 +650,7 @@ private fun LoadTripDialog(
     onDismiss: () -> Unit,
     coroutineScope: kotlinx.coroutines.CoroutineScope
 ) {
+    val context = LocalContext.current
     var tripReference by remember { mutableStateOf("") }
     var customerName by remember { mutableStateOf("") }
     var customerMobile by remember { mutableStateOf("") }
@@ -675,7 +678,7 @@ private fun LoadTripDialog(
     val pickupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         val intent = result.data
         if (result.resultCode == PlaceAutocompleteActivity.RESULT_OK && intent != null) {
-            val prediction = PlaceAutocomplete.getPredictionFromIntent(intent)
+            val prediction = PlaceAutocomplete.getPredictionFromIntent(intent) ?: return@rememberLauncherForActivityResult
             val token = PlaceAutocomplete.getSessionTokenFromIntent(intent)
             val request = FetchPlaceRequest.builder(
                 prediction.placeId,
