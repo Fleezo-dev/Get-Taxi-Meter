@@ -92,6 +92,9 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     private val _recoveredTrip = MutableStateFlow<TripEntity?>(null)
     val recoveredTrip: StateFlow<TripEntity?> = _recoveredTrip.asStateFlow()
 
+    private val _loadedTrip = MutableStateFlow<LoadedTripAssignment?>(null)
+    val loadedTrip: StateFlow<LoadedTripAssignment?> = _loadedTrip.asStateFlow()
+
     private val _selectedHistoryTrip = MutableStateFlow<TripEntity?>(null)
     val selectedHistoryTrip: StateFlow<TripEntity?> = _selectedHistoryTrip.asStateFlow()
 
@@ -283,6 +286,7 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun startNewTripFromSummary() {
+        _loadedTrip.value = null
         TaxiMeterService.resetReadyState()
         _currentScreen.value = Screen.HOME
     }
@@ -367,7 +371,9 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
 
     suspend fun loadTripByOtp(otp: String): Result<LoadedTripAssignment?> {
         val deviceId = DeviceIdManager.getDeviceId(getApplication())
-        return tripAssignmentRepo.claimByOtp(otp, deviceId)
+        return tripAssignmentRepo.claimByOtp(otp, deviceId).onSuccess { assignment ->
+            if (assignment != null) _loadedTrip.value = assignment
+        }
     }
 
     suspend fun createTripAssignment(
@@ -375,7 +381,13 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
         customerName: String,
         customerMobile: String,
         pickup: String,
+        pickupLatitude: Double?,
+        pickupLongitude: Double?,
+        pickupPlaceId: String?,
         drop: String,
+        dropLatitude: Double?,
+        dropLongitude: Double?,
+        dropPlaceId: String?,
         rideMode: RideMode
     ): Result<Pair<LoadedTripAssignment, String>> {
         return tripAssignmentRepo.createAssignment(
@@ -383,7 +395,13 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
             customerName = customerName,
             customerMobile = customerMobile,
             pickup = pickup,
+            pickupLatitude = pickupLatitude,
+            pickupLongitude = pickupLongitude,
+            pickupPlaceId = pickupPlaceId,
             drop = drop,
+            dropLatitude = dropLatitude,
+            dropLongitude = dropLongitude,
+            dropPlaceId = dropPlaceId,
             rideMode = rideMode.name
         )
     }

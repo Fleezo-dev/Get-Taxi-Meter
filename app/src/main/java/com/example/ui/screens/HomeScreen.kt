@@ -76,11 +76,13 @@ import com.example.R
 import com.example.data.RideMode
 import com.example.data.LoadedTripAssignment
 import com.example.model.TripStatus
+import com.example.navigation.openGoogleMapsNavigation
 import com.example.service.FloatingOverlayManager
 import com.example.service.TaxiMeterService
 import com.example.ui.components.CompactMeterDashboard
 import com.example.ui.components.ManualExtraChargeDialog
 import com.example.ui.theme.AppCardBorder
+import com.example.ui.theme.AppCardSecondary
 import com.example.ui.theme.BrandRed
 import com.example.ui.theme.TextSecondary
 import com.example.viewmodel.MeterViewModel
@@ -114,6 +116,7 @@ fun HomeScreen(
     var loadTripOtp by remember { mutableStateOf("") }
     var loadTripError by remember { mutableStateOf<String?>(null) }
     var loadingTrip by remember { mutableStateOf(false) }
+    var reachedCustomer by remember { mutableStateOf(false) }
 
     // Recovery is loaded asynchronously; show the LOAD UNFINISHED TRIP prompt
     // as soon as Room returns an unfinished trip after HomeScreen is composed.
@@ -404,7 +407,30 @@ fun HomeScreen(
                         Text("Pickup: " + trip.pickup, color = Color.Black, fontSize = 13.sp)
                         Text("Drop: " + trip.drop, color = Color.Black, fontSize = 13.sp)
                         Text("Ride Type: " + trip.rideMode.replace('_', ' '), color = TextSecondary, fontSize = 12.sp)
-                        Text("The trip is loaded to this phone. Tap START LOADED TRIP when you are ready.", color = TextSecondary, fontSize = 12.sp)
+                        Text("Trip loaded. Meter has NOT started.", color = BrandRed, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Button(
+                            onClick = {
+                                openGoogleMapsNavigation(
+                                    context = context,
+                                    destination = trip.pickup,
+                                    latitude = trip.pickupLatitude,
+                                    longitude = trip.pickupLongitude,
+                                    placeId = trip.pickupPlaceId
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(containerColor = AppCardSecondary)
+                        ) { Text("NAVIGATE TO CUSTOMER", color = Color.Black, fontWeight = FontWeight.Bold) }
+                        if (!reachedCustomer) {
+                            Button(
+                                onClick = { reachedCustomer = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
+                            ) { Text("REACHED CUSTOMER") }
+                        } else {
+                            Text("Customer reached. You can now start the meter.", color = TextSecondary, fontSize = 12.sp)
+                        }
                     }
                 }
             },
@@ -424,6 +450,7 @@ fun HomeScreen(
                                                 loadTripError = "Invalid or already used trip OTP"
                                             } else {
                                                 loadedTrip = it
+                                                reachedCustomer = false
                                             }
                                         }
                                         .onFailure { loadTripError = it.message ?: "Unable to load trip" }
@@ -434,7 +461,7 @@ fun HomeScreen(
                         enabled = !loadingTrip,
                         colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
                     ) { Text(if (loadingTrip) "LOADING..." else "LOAD TRIP") }
-                } else {
+                } else if (reachedCustomer) {
                     Button(
                         onClick = {
                             val trip = loadedTrip!!
@@ -448,7 +475,7 @@ fun HomeScreen(
                             startTripForSelectedMode()
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
-                    ) { Text("START LOADED TRIP") }
+                    ) { Text("START METER") }
                 }
             },
             dismissButton = {

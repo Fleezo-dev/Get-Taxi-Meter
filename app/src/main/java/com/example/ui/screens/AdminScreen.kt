@@ -40,6 +40,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +62,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.BuildConfig
 import com.example.data.AppRole
 import com.example.data.DeviceIdManager
 import com.example.data.DeviceInstallation
@@ -76,6 +79,12 @@ import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
 import com.example.viewmodel.MeterViewModel
 import com.example.viewmodel.Screen
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.widget.PlaceAutocomplete
+import com.google.android.libraries.places.widget.PlaceAutocompleteActivity
 import kotlinx.coroutines.launch
 
 @Composable
@@ -622,7 +631,7 @@ private fun InstallationMonitorRow(installation: DeviceInstallation, onLoadTrip:
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = onLoadTrip,
-            enabled = installation.activationStatus.equals("ACTIVE", ignoreCase = true) && installation.ownerUid.isNotBlank(),
+            enabled = installation.activationStatus.equals("ACTIVE", ignoreCase = true),
             modifier = Modifier.fillMaxWidth().height(38.dp),
             colors = ButtonDefaults.buttonColors(containerColor = BrandRed),
             shape = RoundedCornerShape(8.dp)
@@ -641,15 +650,90 @@ private fun LoadTripDialog(
     onDismiss: () -> Unit,
     coroutineScope: kotlinx.coroutines.CoroutineScope
 ) {
+    val context = LocalContext.current
     var tripReference by remember { mutableStateOf("") }
     var customerName by remember { mutableStateOf("") }
     var customerMobile by remember { mutableStateOf("") }
     var pickup by remember { mutableStateOf("") }
+    var pickupLatitude by remember { mutableStateOf<Double?>(null) }
+    var pickupLongitude by remember { mutableStateOf<Double?>(null) }
+    var pickupPlaceId by remember { mutableStateOf<String?>(null) }
     var drop by remember { mutableStateOf("") }
+    var dropLatitude by remember { mutableStateOf<Double?>(null) }
+    var dropLongitude by remember { mutableStateOf<Double?>(null) }
+    var dropPlaceId by remember { mutableStateOf<String?>(null) }
     var rideMode by remember { mutableStateOf(RideMode.CITY_RIDE) }
     var saving by remember { mutableStateOf(false) }
     var generatedOtp by remember { mutableStateOf<String?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    val placesClient = remember(context) { if (Places.isInitialized()) Places.createClient(context) else null }
+
+    fun autocompleteIntent(initialQuery: String): android.content.Intent =
+        PlaceAutocomplete.createIntent(context) {
+            setInitialQuery(initialQuery)
+            setCountries(listOf("IN"))
+            setRegionCode("IN")
+        }
+
+    val pickupLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val intent = result.data
+        if (result.resultCode == PlaceAutocompleteActivity.RESULT_OK && intent != null) {
+            val prediction = PlaceAutocomplete.getPredictionFromIntent(intent) ?: return@rememberLauncherForActivityResult
+            val token = PlaceAutocomplete.getSessionTokenFromIntent(intent)
+            val request = FetchPlaceRequest.builder(
+                prediction.placeId,
+                listOf(Place.Field.ID, Place.Field.DISPLAY_NAME, Place.Field.FORMATTED_ADDRESS, Place.Field.LOCATION)
+            ).setSessionToken(token).build()
+            val client = placesClient
+            if (client == null) {
+                error = "Google Places is not initialized"
+            } else client.fetchPlace(request)
+                .addOnSuccessListener { response ->
+                    val place = response.place
+                    pickup = place.formattedAddress ?: place.displayName ?: prediction.getFullText(null).toString()
+                    pickupLatitude = place.location?.latitude
+                    pickupLongitude = place.location?.longitude
+                    pickupPlaceId = place.id
+                    error = null
+                }
+                .addOnFailureListener { error = it.message ?: "Unable to read pickup location" }
+        }
+    }
+
+    val dropLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val intent = result.data
+        if (result.resultCode == PlaceAutocompleteActivity.RESULT_OK && intent != null) {
+            val prediction = PlaceAutocomplete.getPredictionFromIntent(intent) ?: return@rememberLauncherForActivityResult
+            val token = PlaceAutocomplete.getSessionTokenFromIntent(intent)
+            val request = FetchPlaceRequest.builder(
+                prediction.placeId,
+                listOf(Place.Field.ID, Place.Field.DISPLAY_NAME, Place.Field.FORMATTED_ADDRESS, Place.Field.LOCATION)
+            ).setSessionToken(token).build()
+            val client = placesClient
+            if (client == null) {
+                error = "Google Places is not initialized"
+            } else client.fetchPlace(request)
+                .addOnSuccessListener { response ->
+                    val place = response.place
+                    drop = place.formattedAddress ?: place.displayName ?: prediction.getFullText(null).toString()
+                    dropLatitude = place.location?.latitude
+                    dropLongitude = place.location?.longitude
+                    dropPlaceId = place.id
+                    error = null
+                }
+                .addOnFailureListener { error = it.message ?: "Unable to read destination location" }
+        }
+    }
+
+    fun launchAutocomplete(launcher: androidx.activity.result.ActivityResultLauncher<android.content.Intent>, currentValue: String) {
+        val apiKey = BuildConfig.GOOGLE_MAPS_API_KEY.trim()
+        if (apiKey.isBlank() || apiKey == "YOUR_GOOGLE_MAPS_API_KEY" || !Places.isInitialized()) {
+            error = "Google Places is not configured. Add GOOGLE_MAPS_API_KEY to the app secrets."
+            return
+        }
+        runCatching { launcher.launch(autocompleteIntent(currentValue)) }
+            .onFailure { error = it.message ?: "Unable to open address search" }
+    }
 
     AlertDialog(
         onDismissRequest = { if (!saving) onDismiss() },
@@ -662,8 +746,10 @@ private fun LoadTripDialog(
                 OutlinedTextField(value = tripReference, onValueChange = { tripReference = it }, label = { Text("Trip Reference") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = customerName, onValueChange = { customerName = it }, label = { Text("Customer Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
                 OutlinedTextField(value = customerMobile, onValueChange = { customerMobile = it }, label = { Text("Customer Mobile") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = pickup, onValueChange = { pickup = it }, label = { Text("Pickup") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(value = drop, onValueChange = { drop = it }, label = { Text("Drop") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = pickup, onValueChange = { pickup = it; pickupLatitude = null; pickupLongitude = null; pickupPlaceId = null }, label = { Text("Pickup") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Button(onClick = { launchAutocomplete(pickupLauncher, pickup) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = AppCardSecondary)) { Text("SEARCH PICKUP WITH GOOGLE", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
+                OutlinedTextField(value = drop, onValueChange = { drop = it; dropLatitude = null; dropLongitude = null; dropPlaceId = null }, label = { Text("Drop") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Button(onClick = { launchAutocomplete(dropLauncher, drop) }, modifier = Modifier.fillMaxWidth(), colors = ButtonDefaults.buttonColors(containerColor = AppCardSecondary)) { Text("SEARCH DESTINATION WITH GOOGLE", color = TextPrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold) }
                 Text("Ride Type", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextSecondary)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
                     RideMode.entries.forEach { mode ->
@@ -694,6 +780,7 @@ private fun LoadTripDialog(
                 Button(
                     onClick = {
                         if (pickup.isBlank() || drop.isBlank()) { error = "Pickup and Drop are required"; return@Button }
+                        if (pickupLatitude == null || pickupLongitude == null || dropLatitude == null || dropLongitude == null) { error = "Please select both Pickup and Drop from Google address search"; return@Button }
                         saving = true
                         error = null
                         coroutineScope.launch {
@@ -702,7 +789,13 @@ private fun LoadTripDialog(
                                 customerName = customerName,
                                 customerMobile = customerMobile,
                                 pickup = pickup,
+                                pickupLatitude = pickupLatitude,
+                                pickupLongitude = pickupLongitude,
+                                pickupPlaceId = pickupPlaceId,
                                 drop = drop,
+                                dropLatitude = dropLatitude,
+                                dropLongitude = dropLongitude,
+                                dropPlaceId = dropPlaceId,
                                 rideMode = rideMode
                             ).onSuccess { generatedOtp = it.second }
                                 .onFailure { error = it.message ?: "Unable to load trip" }
