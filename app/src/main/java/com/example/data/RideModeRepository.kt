@@ -15,8 +15,8 @@ data class RidePricing(
     val hourlyRate: Double = 350.0,
     val hourlyFreeKm: Double = 10.0,
     val hourlyExtraKmRate: Double = 20.0,
-    val outstationDriverBata: Double = 300.0,
-    val outstationPerKmRate: Double = 16.0
+    val outstationDriverBata: Double = 500.0,
+    val outstationPerKmRate: Double = 30.0
 )
 
 class RideModeRepository(context: Context) {
@@ -64,8 +64,8 @@ class RideModeRepository(context: Context) {
             hourlyRate = prefs.getFloat("hourly_rate", 350f).toDouble(),
             hourlyFreeKm = prefs.getFloat("hourly_free_km", 10f).toDouble(),
             hourlyExtraKmRate = prefs.getFloat("hourly_extra_km_rate", 20f).toDouble(),
-            outstationDriverBata = prefs.getFloat("outstation_driver_bata", 300f).toDouble(),
-            outstationPerKmRate = prefs.getFloat("outstation_per_km_rate", 16f).toDouble()
+            outstationDriverBata = prefs.getFloat("outstation_driver_bata", 500f).toDouble(),
+            outstationPerKmRate = prefs.getFloat("outstation_per_km_rate", 30f).toDouble()
         )
     }
 }
