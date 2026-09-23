@@ -61,6 +61,50 @@ service cloud.firestore {
       allow delete: if isMasterAdmin();
     }
 
+
+    match /trip_assignments/{assignmentId} {
+      // Only the Master Admin can create/manage assignments.
+      allow create: if isMasterAdmin()
+        && request.resource.data.assignmentId == assignmentId
+        && request.resource.data.ownerUid is string
+        && request.resource.data.deviceId is string
+        && request.resource.data.status == "ASSIGNED";
+
+      // Admin can inspect assignments. A driver can query only assignments
+      // explicitly owned by its anonymous Firebase UID.
+      allow get: if isMasterAdmin()
+        || (
+          signedIn()
+          && request.auth.token.firebase.sign_in_provider == "anonymous"
+          && resource.data.ownerUid == request.auth.uid
+        );
+
+      allow list: if isMasterAdmin()
+        || (
+          signedIn()
+          && request.auth.token.firebase.sign_in_provider == "anonymous"
+          && request.query.limit <= 10
+          && resource.data.ownerUid == request.auth.uid
+          && resource.data.status == "ASSIGNED"
+        );
+
+      // Driver may only claim its own assigned trip; ownership and device
+      // cannot be changed by the driver.
+      allow update: if isMasterAdmin()
+        || (
+          signedIn()
+          && request.auth.token.firebase.sign_in_provider == "anonymous"
+          && resource.data.ownerUid == request.auth.uid
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.deviceId == resource.data.deviceId
+          && resource.data.status == "ASSIGNED"
+          && request.resource.data.status == "CLAIMED"
+          && request.resource.data.claimedByUid == request.auth.uid
+        );
+
+      allow delete: if isMasterAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
