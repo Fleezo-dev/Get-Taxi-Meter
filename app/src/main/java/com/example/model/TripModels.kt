@@ -27,12 +27,16 @@ data class Tariff(
     val id: String = "standard_day",
     val name: String = "Standard Tariff",
     val baseFare: Double = 50.0,
-    val minimumFare: Double = 50.0,
+    /** Legacy field retained for data compatibility; city minimum fare is no longer applied. */
+    val minimumFare: Double = 0.0,
     val distanceRatePerKm: Double = 18.0,
     val waitingRatePerMinute: Double = 2.0,
     val freeDistanceKm: Double = 1.5,
-    val freeWaitingMinutes: Double = 5.0,
+    /** Waiting is chargeable from the first minute when waiting rate is enabled. */
+    val freeWaitingMinutes: Double = 0.0,
     val waitingSpeedThresholdKmH: Double = 5.0,
+    /** When false, city rides do not add a per-km distance charge. */
+    val distanceChargeEnabled: Boolean = true,
     val fareRounding: FareRounding = FareRounding.NEAREST_ONE,
     val nightSurchargeMultiplier: Double = 1.0 // 1.25 for 25% night surge
 )
