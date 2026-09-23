@@ -109,8 +109,11 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private suspend fun initializeAuth() {
+        // Driver/test devices must not require the administrator's Firebase credentials.
+        // Unauthenticated devices start at Device Activation; administrator access is
+        // available through the dedicated admin login path.
         if (!authRepo.isSignedIn()) {
-            _currentScreen.value = Screen.AUTH
+            _currentScreen.value = Screen.ACTIVATION
             return
         }
         _authLoading.value = true
@@ -163,7 +166,9 @@ class MeterViewModel(application: Application) : AndroidViewModel(application) {
     fun signOut() {
         authRepo.signOut()
         _authProfile.value = null
-        _currentScreen.value = Screen.AUTH
+        // After admin sign-out, return to the device activation flow rather than
+        // exposing the admin login screen as the normal driver entry point.
+        _currentScreen.value = Screen.ACTIVATION
     }
 
     fun clearAuthError() { _authError.value = null }
