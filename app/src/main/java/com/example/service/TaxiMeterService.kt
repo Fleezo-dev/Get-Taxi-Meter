@@ -68,7 +68,19 @@ class TaxiMeterService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
+        // Android may recreate a START_STICKY foreground service with a null intent
+        // after the app process is killed. If an active trip exists in Room, restore
+        // it automatically instead of starting with an empty meter.
+        if (intent == null) {
+            serviceScope.launch(Dispatchers.IO) {
+                val activeTrip = TaxiMeterApplication.instance.database.tripDao().getActiveTrip()
+                if (activeTrip != null && _tripState.value.status == TripStatus.READY) {
+                    resumeTripInternal(activeTrip.tripId)
+                }
+            }
+            return START_STICKY
+        }
+        when (intent.action) {
             ACTION_START_TRIP -> {
                 val app = TaxiMeterApplication.instance
                 val cityTariff = app.tariffRepository.loadTariff()
