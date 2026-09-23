@@ -142,6 +142,7 @@ fun SetupChecklistScreen(
     var backgroundGuideShown by remember { mutableStateOf(false) }
     var batteryGuideShown by remember { mutableStateOf(false) }
     var overlayGuideShown by remember { mutableStateOf(false) }
+    var showSpecialSetupDialog by remember { mutableStateOf<String?>(null) }
 
     fun refreshChecks() {
         hasFineLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
@@ -221,14 +222,14 @@ fun SetupChecklistScreen(
                 showSpecialSetupDialog = "background"
             }
             hasFineLocation && hasNotificationPermission &&
-                (hasBackgroundLocation || backgroundGuideShown) &&
+                hasBackgroundLocation &&
                 !isBatteryOptimizedIgnored && !batteryGuideShown -> {
                 batteryGuideShown = true
                 showSpecialSetupDialog = "battery"
             }
             hasFineLocation && hasNotificationPermission &&
-                (hasBackgroundLocation || backgroundGuideShown) &&
-                (isBatteryOptimizedIgnored || batteryGuideShown) &&
+                hasBackgroundLocation &&
+                isBatteryOptimizedIgnored &&
                 !canDrawOverlay && !overlayGuideShown -> {
                 overlayGuideShown = true
                 showSpecialSetupDialog = "overlay"
@@ -241,7 +242,6 @@ fun SetupChecklistScreen(
     // guided flow instead of expecting them to discover that setting.
     var showOverlayGuide by remember { mutableStateOf(false) }
     var restrictedSettingsStepOpened by remember { mutableStateOf(false) }
-    var showSpecialSetupDialog by remember { mutableStateOf<String?>(null) }
 
     fun openAppDetailsSettings() {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
