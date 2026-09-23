@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import com.example.data.AppRole
 import com.example.data.DeviceIdManager
 import com.example.data.DeviceInstallation
+import com.example.data.RideMode
 import com.example.ui.components.BrandLogo
 import com.example.ui.components.CurvedBrandFooter
 import com.example.ui.theme.AppCardBorder
@@ -105,6 +106,8 @@ fun AdminScreen(
     var targetDeviceId by remember { mutableStateOf(localDeviceId) }
     var generatedCode by remember { mutableStateOf<String?>(null) }
     var isGenerating by remember { mutableStateOf(false) }
+    var showLoadTripDialog by remember { mutableStateOf(false) }
+    var selectedInstallation by remember { mutableStateOf<DeviceInstallation?>(null) }
 
     val scrollState = rememberScrollState()
 
@@ -349,11 +352,20 @@ fun AdminScreen(
                         installationsLoading && installations.isEmpty() -> CircularProgressIndicator(color = BrandRed, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                         installations.isEmpty() -> Text("No installations have reported yet.", fontSize = 12.sp, color = TextSecondary)
                         else -> installations.forEachIndexed { index, installation ->
-                            InstallationMonitorRow(installation)
+                            InstallationMonitorRow(installation) { selectedInstallation = installation; showLoadTripDialog = true }
                             if (index < installations.lastIndex) HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = AppCardBorder)
                         }
                     }
                 }
+            }
+
+            if (showLoadTripDialog && selectedInstallation != null) {
+                LoadTripDialog(
+                    installation = selectedInstallation!!,
+                    viewModel = viewModel,
+                    onDismiss = { showLoadTripDialog = false },
+                    coroutineScope = coroutineScope
+                )
             }
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -583,7 +595,7 @@ fun AdminScreen(
 }
 
 @Composable
-private fun InstallationMonitorRow(installation: DeviceInstallation) {
+private fun InstallationMonitorRow(installation: DeviceInstallation, onLoadTrip: () -> Unit) {
     val statusText = when (installation.activationStatus.uppercase()) {
         "ACTIVE" -> "ACTIVE"
         "PENDING" -> "PENDING"
@@ -606,12 +618,117 @@ private fun InstallationMonitorRow(installation: DeviceInstallation) {
         Text(text = "$driver  •  $vehicle", fontSize = 11.5.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
         Spacer(modifier = Modifier.height(3.dp))
         Text(text = "First seen: ${installation.firstSeenAt?.let { formatInstallationTime(it) } ?: "Waiting for sync"}", fontSize = 10.5.sp, color = TextSecondary)
-        Text(text = "Last seen: ${installation.lastSeenAt?.let { formatInstallationTime(it) } ?: "Waiting for sync"}  •  v${installation.appVersion.ifBlank { "—" }}", fontSize = 10.5.sp, color = TextSecondary)
+        Text(text = "Last seen: " + (installation.lastSeenAt?.let { formatInstallationTime(it) } ?: "Waiting for sync") + "  •  v" + installation.appVersion.ifBlank { "—" }, fontSize = 10.5.sp, color = TextSecondary)
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = onLoadTrip,
+            enabled = installation.activationStatus.equals("ACTIVE", ignoreCase = true) && installation.ownerUid.isNotBlank(),
+            modifier = Modifier.fillMaxWidth().height(38.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = BrandRed),
+            shape = RoundedCornerShape(8.dp)
+        ) {
+            Text("LOAD TRIP TO THIS DRIVER", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+        }
     }
 }
 
 private fun formatInstallationTime(timeMs: Long): String =
     java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault()).format(java.util.Date(timeMs))
+
+@Composable
+private fun LoadTripDialog(
+    installation: DeviceInstallation,
+    viewModel: MeterViewModel,
+    onDismiss: () -> Unit,
+    coroutineScope: kotlinx.coroutines.CoroutineScope
+) {
+    var tripReference by remember { mutableStateOf("") }
+    var customerName by remember { mutableStateOf("") }
+    var customerMobile by remember { mutableStateOf("") }
+    var pickup by remember { mutableStateOf("") }
+    var drop by remember { mutableStateOf("") }
+    var rideMode by remember { mutableStateOf(RideMode.CITY_RIDE) }
+    var saving by remember { mutableStateOf(false) }
+    var generatedOtp by remember { mutableStateOf<String?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+
+    AlertDialog(
+        onDismissRequest = { if (!saving) onDismiss() },
+        containerColor = Color.White,
+        title = { Text("LOAD TRIP TO DRIVER", color = TextPrimary, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("Driver: " + installation.driverName.ifBlank { installation.deviceId }, fontSize = 12.sp, color = TextSecondary)
+                Text("The generated OTP is given to the driver. The driver enters it in Load Trip on the meter.", fontSize = 11.sp, color = TextSecondary)
+                OutlinedTextField(value = tripReference, onValueChange = { tripReference = it }, label = { Text("Trip Reference") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = customerName, onValueChange = { customerName = it }, label = { Text("Customer Name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = customerMobile, onValueChange = { customerMobile = it }, label = { Text("Customer Mobile") }, singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone), modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = pickup, onValueChange = { pickup = it }, label = { Text("Pickup") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = drop, onValueChange = { drop = it }, label = { Text("Drop") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Text("Ride Type", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = TextSecondary)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.fillMaxWidth()) {
+                    RideMode.entries.forEach { mode ->
+                        Button(
+                            onClick = { rideMode = mode },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.buttonColors(containerColor = if (rideMode == mode) BrandRed else AppCardSecondary),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 7.dp)
+                        ) {
+                            Text(mode.name.replace('_', ' '), fontSize = 9.sp, color = if (rideMode == mode) Color.White else TextPrimary)
+                        }
+                    }
+                }
+                if (error != null) Text(error!!, color = BrandRed, fontSize = 11.sp)
+                if (generatedOtp != null) {
+                    Box(modifier = Modifier.fillMaxWidth().background(AppCardSecondary, RoundedCornerShape(10.dp)).border(1.dp, MeterGreen, RoundedCornerShape(10.dp)).padding(12.dp)) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                            Text("DRIVER LOAD OTP", color = TextSecondary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                            Text(generatedOtp!!, color = BrandRed, fontSize = 28.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Black)
+                            Text("Give this OTP to the driver. It can be used once.", color = TextSecondary, fontSize = 10.sp, textAlign = TextAlign.Center)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (generatedOtp == null) {
+                Button(
+                    onClick = {
+                        if (pickup.isBlank() || drop.isBlank()) { error = "Pickup and Drop are required"; return@Button }
+                        saving = true
+                        error = null
+                        coroutineScope.launch {
+                            viewModel.createTripAssignment(
+                                deviceId = installation.deviceId,
+                                ownerUid = installation.ownerUid,
+                                tripReference = tripReference,
+                                customerName = customerName,
+                                customerMobile = customerMobile,
+                                pickup = pickup,
+                                drop = drop,
+                                rideMode = rideMode
+                            ).onSuccess { generatedOtp = it.second }
+                                .onFailure { error = it.message ?: "Unable to load trip" }
+                            saving = false
+                        }
+                    },
+                    enabled = !saving,
+                    colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
+                ) {
+                    if (saving) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                    else Text("GENERATE LOAD OTP")
+                }
+            } else {
+                Button(onClick = onDismiss, colors = ButtonDefaults.buttonColors(containerColor = BrandRed)) { Text("DONE") }
+            }
+        },
+        dismissButton = {
+            if (generatedOtp == null) {
+                androidx.compose.material3.TextButton(onClick = onDismiss, enabled = !saving) { Text("Cancel") }
+            }
+        }
+    )
+}
 
 @Composable
 private fun AdminDetailRow(
