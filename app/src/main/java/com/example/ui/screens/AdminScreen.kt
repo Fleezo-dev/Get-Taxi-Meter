@@ -40,6 +40,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.AppRole
 import com.example.data.DeviceIdManager
+import com.example.data.DeviceInstallation
 import com.example.ui.components.BrandLogo
 import com.example.ui.components.CurvedBrandFooter
 import com.example.ui.theme.AppCardBorder
@@ -90,6 +92,14 @@ fun AdminScreen(
     val isActivated by viewModel.isActivated.collectAsState()
     val localDeviceId = remember { DeviceIdManager.getDeviceId(context) }
     val isMasterAdmin = viewModel.hasRole(AppRole.MASTER_ADMIN)
+    val installations by viewModel.installations.collectAsState()
+    val installationsLoading by viewModel.installationsLoading.collectAsState()
+
+    LaunchedEffect(isMasterAdmin, isAuthenticated) {
+        if (isMasterAdmin && isAuthenticated) {
+            viewModel.refreshInstallations()
+        }
+    }
 
     // Admin Generator State
     var targetDeviceId by remember { mutableStateOf(localDeviceId) }
@@ -302,7 +312,52 @@ fun AdminScreen(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // 1. Generate Activation Code Card
+            // 1. DEVICE / INSTALLATION MONITOR
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                border = androidx.compose.foundation.BorderStroke(1.dp, AppCardBorder)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(text = "DEVICE / INSTALLATION MONITOR", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                            Text(text = "See phones that have opened Get Taxi Meter", fontSize = 11.5.sp, color = TextSecondary, modifier = Modifier.padding(top = 3.dp))
+                        }
+                        Button(
+                            onClick = { viewModel.refreshInstallations() },
+                            enabled = !installationsLoading,
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 12.dp, vertical = 7.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = AppCardSecondary),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, AppCardBorder),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            if (installationsLoading) {
+                                CircularProgressIndicator(color = BrandRed, modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
+                            } else {
+                                Text("REFRESH", color = TextPrimary, fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    when {
+                        installationsLoading && installations.isEmpty() -> CircularProgressIndicator(color = BrandRed, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                        installations.isEmpty() -> Text("No installations have reported yet.", fontSize = 12.sp, color = TextSecondary)
+                        else -> installations.forEachIndexed { index, installation ->
+                            InstallationMonitorRow(installation)
+                            if (index < installations.lastIndex) HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp), color = AppCardBorder)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+            // 2. Generate Activation Code Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -433,7 +488,7 @@ fun AdminScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "2. CURRENT DEVICE & DRIVER DETAILS",
+                        text = "3. CURRENT DEVICE & DRIVER DETAILS",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
@@ -463,7 +518,7 @@ fun AdminScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "3. QUICK ACTIONS",
+                        text = "4. QUICK ACTIONS",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
@@ -526,6 +581,37 @@ fun AdminScreen(
         CurvedBrandFooter()
     }
 }
+
+@Composable
+private fun InstallationMonitorRow(installation: DeviceInstallation) {
+    val statusText = when (installation.activationStatus.uppercase()) {
+        "ACTIVE" -> "ACTIVE"
+        "PENDING" -> "PENDING"
+        else -> "NOT ACTIVATED"
+    }
+    val statusColor = if (statusText == "ACTIVE") MeterGreen else BrandRed
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = installation.deviceId, fontFamily = FontFamily.Monospace, fontSize = 12.5.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+            Text(text = statusText, color = statusColor, fontSize = 10.5.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(5.dp))
+        val driver = installation.driverName.ifBlank { "Driver not registered" }
+        val vehicle = installation.vehicleNumber.ifBlank { "Vehicle not registered" }
+        Text(text = "$driver  •  $vehicle", fontSize = 11.5.sp, color = TextPrimary, fontWeight = FontWeight.SemiBold)
+        Spacer(modifier = Modifier.height(3.dp))
+        Text(text = "First seen: ${installation.firstSeenAt?.let { formatInstallationTime(it) } ?: "Waiting for sync"}", fontSize = 10.5.sp, color = TextSecondary)
+        Text(text = "Last seen: ${installation.lastSeenAt?.let { formatInstallationTime(it) } ?: "Waiting for sync"}  •  v${installation.appVersion.ifBlank { "—" }}", fontSize = 10.5.sp, color = TextSecondary)
+    }
+}
+
+private fun formatInstallationTime(timeMs: Long): String =
+    java.text.SimpleDateFormat("dd MMM yyyy, hh:mm a", java.util.Locale.getDefault()).format(java.util.Date(timeMs))
 
 @Composable
 private fun AdminDetailRow(
