@@ -3,7 +3,6 @@ package com.example.data
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.example.model.ExtraCharge
-import com.example.model.FareRounding
 import com.example.model.MeterBreakdown
 import com.example.model.Tariff
 import com.example.model.TripState
@@ -55,11 +54,6 @@ data class TripEntity(
             waitingRatePerMinute = tariffWaitingRate,
             freeDistanceKm = tariffFreeDistanceKm,
             freeWaitingMinutes = tariffFreeWaitingMin,
-            fareRounding = try {
-                FareRounding.valueOf(tariffRounding)
-            } catch (e: Exception) {
-                FareRounding.NEAREST_ONE
-            }
         )
 
         val extrasList = parseExtras(extraChargesJson)
@@ -135,7 +129,7 @@ data class TripEntity(
                 tariffWaitingRate = state.tariff.waitingRatePerMinute,
                 tariffFreeDistanceKm = state.tariff.freeDistanceKm,
                 tariffFreeWaitingMin = state.tariff.freeWaitingMinutes,
-                tariffRounding = state.tariff.fareRounding.name,
+                tariffRounding = "",
                 lastGpsTimestamp = state.lastGpsTimestamp,
                 isRecovered = state.isRecovered
             )
