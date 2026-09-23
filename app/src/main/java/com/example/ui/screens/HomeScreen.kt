@@ -102,7 +102,13 @@ fun HomeScreen(
     var showTodaySummaryDialog by remember { mutableStateOf(false) }
     var showMoreMenuDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
-    var showRecoveredTripDialog by remember { mutableStateOf(recoveredTrip != null) }
+    var showRecoveredTripDialog by remember { mutableStateOf(false) }
+
+    // Recovery is loaded asynchronously; show the LOAD UNFINISHED TRIP prompt
+    // as soon as Room returns an unfinished trip after HomeScreen is composed.
+    LaunchedEffect(recoveredTrip?.tripId) {
+        if (recoveredTrip != null) showRecoveredTripDialog = true
+    }
 
     LaunchedEffect(recoveredTrip?.tripId) {
         if (recoveredTrip != null) showRecoveredTripDialog = true
