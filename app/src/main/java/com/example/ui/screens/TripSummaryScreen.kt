@@ -231,7 +231,15 @@ fun TripSummaryScreen(
                     value = String.format(Locale.US, "₹%.2f", targetState.breakdown.waitingFare)
                 )
 
-                if (targetState.breakdown.extraChargesTotal > 0) {
+                if (targetState.extras.isNotEmpty()) {
+                    targetState.extras.forEach { extra ->
+                        ReceiptRow(
+                            label = extra.label,
+                            value = String.format(Locale.US, "₹%.2f", extra.amount),
+                            valueColor = BrandRed
+                        )
+                    }
+                } else if (targetState.breakdown.extraChargesTotal > 0) {
                     ReceiptRow(
                         label = "Extra Charges",
                         value = String.format(Locale.US, "₹%.2f", targetState.breakdown.extraChargesTotal),
