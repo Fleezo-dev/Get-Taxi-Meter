@@ -63,50 +63,40 @@ service cloud.firestore {
 
 
     match /trip_assignments/{assignmentId} {
-      // Only the Master Admin can create/manage assignments.
+      // Master Admin creates a universal/open trip; no driver is selected.
       allow create: if isMasterAdmin()
         && request.resource.data.assignmentId == assignmentId
-        && request.resource.data.ownerUid is string
-        && request.resource.data.deviceId is string
-        && request.resource.data.status == "ASSIGNED";
+        && request.resource.data.status == "ASSIGNED"
+        && request.resource.data.otpHash == assignmentId;
 
-      // Admin can inspect assignments. A driver can query only assignments
-      // explicitly owned by its anonymous Firebase UID.
+      // Drivers can fetch a trip only by its OTP-derived document ID.
+      // Collection listing remains unavailable to drivers.
       allow get: if isMasterAdmin()
         || (
           signedIn()
           && request.auth.token.firebase.sign_in_provider == "anonymous"
-          && resource.data.ownerUid == request.auth.uid
+          && resource.data.status in ["ASSIGNED", "CLAIMED", "STARTED", "COMPLETED"]
         );
 
-      allow list: if isMasterAdmin()
-        || (
-          signedIn()
-          && request.auth.token.firebase.sign_in_provider == "anonymous"
-          && request.query.limit <= 10
-          && resource.data.ownerUid == request.auth.uid
-          && resource.data.status == "ASSIGNED"
-        );
+      allow list: if isMasterAdmin();
 
-      // Driver may only claim its own assigned trip; ownership and device
-      // cannot be changed by the driver.
+      // First successful claim wins.
       allow update: if isMasterAdmin()
         || (
           signedIn()
           && request.auth.token.firebase.sign_in_provider == "anonymous"
-          && resource.data.ownerUid == request.auth.uid
-          && request.resource.data.ownerUid == resource.data.ownerUid
-          && request.resource.data.deviceId == resource.data.deviceId
           && resource.data.status == "ASSIGNED"
           && request.resource.data.status == "CLAIMED"
+          && request.resource.data.ownerUid == request.auth.uid
           && request.resource.data.claimedByUid == request.auth.uid
+          && request.resource.data.deviceId is string
+          && request.resource.data.assignmentId == resource.data.assignmentId
+          && request.resource.data.otpHash == resource.data.otpHash
         )
         || (
           signedIn()
           && request.auth.token.firebase.sign_in_provider == "anonymous"
           && resource.data.ownerUid == request.auth.uid
-          && request.resource.data.ownerUid == resource.data.ownerUid
-          && request.resource.data.deviceId == resource.data.deviceId
           && resource.data.status == "CLAIMED"
           && request.resource.data.status == "STARTED"
           && request.resource.data.startedByUid == request.auth.uid
@@ -115,8 +105,6 @@ service cloud.firestore {
           signedIn()
           && request.auth.token.firebase.sign_in_provider == "anonymous"
           && resource.data.ownerUid == request.auth.uid
-          && request.resource.data.ownerUid == resource.data.ownerUid
-          && request.resource.data.deviceId == resource.data.deviceId
           && resource.data.status == "STARTED"
           && request.resource.data.status == "COMPLETED"
           && request.resource.data.completedByUid == request.auth.uid
