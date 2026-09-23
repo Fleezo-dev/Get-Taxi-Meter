@@ -53,12 +53,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.RidePricing
 import com.example.ui.theme.AppCardBorder
-import com.example.ui.theme.AppCardSecondary
 import com.example.ui.theme.AppWhiteBg
 import com.example.ui.theme.BrandRed
-import com.example.ui.theme.BrandRedLight
 import com.example.ui.theme.TextMuted
-import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
 import com.example.viewmodel.MeterViewModel
 import com.example.viewmodel.Screen
@@ -251,10 +248,10 @@ fun TariffSettingsScreen(
 
             Button(
                 onClick = {
-                    val base = baseFareText.toDoubleOrNull() ?: 50.0
-                    val distRate = distanceRateText.toDoubleOrNull() ?: 18.0
+                    val base = baseFareText.toDoubleOrNull() ?: 80.0
+                    val distRate = distanceRateText.toDoubleOrNull() ?: 28.0
                     val waitRate = waitingRateText.toDoubleOrNull() ?: 2.0
-                    val freeDist = freeDistanceText.toDoubleOrNull() ?: 1.5
+                    val freeDist = freeDistanceText.toDoubleOrNull() ?: 0.0
                     val speedThreshold = speedThresholdText.toDoubleOrNull() ?: 5.0
 
                     val updatedTariff = currentTariff.copy(
@@ -265,8 +262,7 @@ fun TariffSettingsScreen(
                         freeDistanceKm = freeDist,
                         waitingSpeedThresholdKmH = speedThreshold,
                         freeWaitingMinutes = 0.0,
-                        distanceChargeEnabled = distanceChargeEnabled,
-                        fareRounding = selectedRounding
+                        distanceChargeEnabled = distanceChargeEnabled
                     )
 
                     viewModel.saveTariff(updatedTariff)
@@ -275,8 +271,8 @@ fun TariffSettingsScreen(
                             hourlyRate = hourlyRateText.toDoubleOrNull() ?: 350.0,
                             hourlyFreeKm = hourlyFreeKmText.toDoubleOrNull() ?: 10.0,
                             hourlyExtraKmRate = hourlyExtraKmRateText.toDoubleOrNull() ?: 20.0,
-                            outstationDriverBata = outstationDriverBataText.toDoubleOrNull() ?: 300.0,
-                            outstationPerKmRate = outstationPerKmRateText.toDoubleOrNull() ?: 16.0
+                            outstationDriverBata = outstationDriverBataText.toDoubleOrNull() ?: 500.0,
+                            outstationPerKmRate = outstationPerKmRateText.toDoubleOrNull() ?: 30.0
                         )
                     )
                     Toast.makeText(context, "All tariff settings saved successfully", Toast.LENGTH_SHORT).show()
