@@ -47,42 +47,42 @@ jobs:
             exit 1
           fi
           python3 - "$FILE" <<'PY'
-import hashlib
-import json
-import sys
-import xml.etree.ElementTree as ET
+          import hashlib
+          import json
+          import sys
+          import xml.etree.ElementTree as ET
 
-path = sys.argv[1]
-source = json.load(open("app/google-services.json", encoding="utf-8"))
-key = source["client"][0]["api_key"][0]["current_key"]
-root = ET.parse(path).getroot()
-values = {}
-for node in root:
-    if node.tag.endswith("string") and node.attrib.get("name"):
-        values[node.attrib["name"]] = node.text or ""
+          path = sys.argv[1]
+          source = json.load(open("app/google-services.json", encoding="utf-8"))
+          key = source["client"][0]["api_key"][0]["current_key"]
+          root = ET.parse(path).getroot()
+          values = {}
+          for node in root:
+              if node.tag.endswith("string") and node.attrib.get("name"):
+                  values[node.attrib["name"]] = node.text or ""
 
-expected = {
-    "google_app_id": "1:905902052873:android:1bf6d3ea58532b9ab04ad8",
-    "project_id": "get-taxi-meter-productio-b0cea",
-    "google_api_key": key,
-}
-failed = False
-print("Firebase generated resource checks:")
-for name, expected_value in expected.items():
-    actual = values.get(name)
-    ok = actual == expected_value
-    print(f"  {name}: {'PASS' if ok else 'FAIL'}")
-    if not ok:
-        print(f"    generated length={len(actual) if actual is not None else 'MISSING'} expected length={len(expected_value)}")
-        failed = True
+          expected = {
+              "google_app_id": "1:905902052873:android:1bf6d3ea58532b9ab04ad8",
+              "project_id": "get-taxi-meter-productio-b0cea",
+              "google_api_key": key,
+          }
+          failed = False
+          print("Firebase generated resource checks:")
+          for name, expected_value in expected.items():
+              actual = values.get(name)
+              ok = actual == expected_value
+              print(f"  {name}: {'PASS' if ok else 'FAIL'}")
+              if not ok:
+                  print(f"    generated length={len(actual) if actual is not None else 'MISSING'} expected length={len(expected_value)}")
+                  failed = True
 
-if "google_api_key" in values:
-    print("  google_api_key SHA256:", hashlib.sha256(values["google_api_key"].encode()).hexdigest())
+          if "google_api_key" in values:
+              print("  google_api_key SHA256:", hashlib.sha256(values["google_api_key"].encode()).hexdigest())
 
-if failed:
-    raise SystemExit(1)
-print("Firebase generated resources: PASS")
-PY
+          if failed:
+              raise SystemExit(1)
+          print("Firebase generated resources: PASS")
+          PY
 
       - name: Validate Firebase Authentication API key
         run: |
@@ -90,18 +90,19 @@ PY
           KEY=$(python3 -c 'import json; print(json.load(open("app/google-services.json"))["client"][0]["api_key"][0]["current_key"])')
           HTTP_CODE=$(curl -sS -o /tmp/firebase_auth_response.json -w "%{http_code}" -X POST             -H "Content-Type: application/json"             -d '{"email":"firebase-key-diagnostic@example.com","password":"NotARealPassword123!","returnSecureToken":true}'             "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=$KEY")
           python3 - "$HTTP_CODE" <<'PY'
-import json
-import sys
-http_code = sys.argv[1]
-data = json.load(open("/tmp/firebase_auth_response.json", encoding="utf-8"))
-message = data.get("error", {}).get("message", "")
-print("Firebase Auth API HTTP status:", http_code)
-print("Firebase Auth API diagnostic response:", message or "NO_ERROR")
-if message in ("API_KEY_INVALID", "INVALID_API_KEY"):
-    print("Firebase Authentication API key: FAIL")
-    raise SystemExit(1)
-print("Firebase Authentication API key accepted by Identity Toolkit: PASS")
-PY
+          import json
+          import sys
+
+          http_code = sys.argv[1]
+          data = json.load(open("/tmp/firebase_auth_response.json", encoding="utf-8"))
+          message = data.get("error", {}).get("message", "")
+          print("Firebase Auth API HTTP status:", http_code)
+          print("Firebase Auth API diagnostic response:", message or "NO_ERROR")
+          if message in ("API_KEY_INVALID", "INVALID_API_KEY"):
+              print("Firebase Authentication API key: FAIL")
+              raise SystemExit(1)
+          print("Firebase Authentication API key accepted by Identity Toolkit: PASS")
+          PY
 
       - name: Build Debug APK
         run: ./gradlew --no-daemon assembleDebug
