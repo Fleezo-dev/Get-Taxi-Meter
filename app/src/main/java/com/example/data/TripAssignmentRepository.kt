@@ -92,6 +92,46 @@ class TripAssignmentRepository {
         }
     }
 
+    suspend fun markStarted(assignmentId: String): Result<Unit> {
+        return runCatching {
+            val user = auth.currentUser ?: throw IllegalStateException("Driver authentication required")
+            require(user.isAnonymous) { "Driver device authentication required" }
+            val ref = firestore.collection(COLLECTION).document(assignmentId)
+            firestore.runTransaction { transaction ->
+                val latest = transaction.get(ref)
+                require(latest.exists()) { "Trip assignment not found" }
+                require(latest.getString("ownerUid") == user.uid) { "Trip assignment belongs to another device" }
+                require(latest.getString("status") == STATUS_CLAIMED) { "Trip is not in CLAIMED state" }
+                transaction.update(ref, mapOf(
+                    "status" to "STARTED",
+                    "startedAt" to FieldValue.serverTimestamp(),
+                    "startedByUid" to user.uid
+                ))
+                null
+            }.await()
+        }
+    }
+
+    suspend fun markCompleted(assignmentId: String): Result<Unit> {
+        return runCatching {
+            val user = auth.currentUser ?: throw IllegalStateException("Driver authentication required")
+            require(user.isAnonymous) { "Driver device authentication required" }
+            val ref = firestore.collection(COLLECTION).document(assignmentId)
+            firestore.runTransaction { transaction ->
+                val latest = transaction.get(ref)
+                require(latest.exists()) { "Trip assignment not found" }
+                require(latest.getString("ownerUid") == user.uid) { "Trip assignment belongs to another device" }
+                require(latest.getString("status") == "STARTED") { "Trip is not in STARTED state" }
+                transaction.update(ref, mapOf(
+                    "status" to "COMPLETED",
+                    "completedAt" to FieldValue.serverTimestamp(),
+                    "completedByUid" to user.uid
+                ))
+                null
+            }.await()
+        }
+    }
+
     suspend fun claimByOtp(otp: String): Result<LoadedTripAssignment?> {
         return runCatching {
             val user = auth.currentUser ?: auth.signInAnonymously().await().user
