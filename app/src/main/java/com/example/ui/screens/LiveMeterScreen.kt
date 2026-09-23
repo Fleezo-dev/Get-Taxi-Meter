@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.example.navigation.openGoogleMapsNavigation
 import com.example.service.FloatingOverlayManager
 import com.example.service.TaxiMeterService
 import com.example.ui.components.CompactMeterDashboard
@@ -86,6 +87,7 @@ fun LiveMeterScreen(
 
     val tripState by viewModel.tripState.collectAsState()
     val todayTrips by viewModel.todayCompletedTrips.collectAsState()
+    val loadedTrip by viewModel.loadedTrip.collectAsState()
 
     var showEndTripConfirmation by remember { mutableStateOf(false) }
     var showAddExtraDialog by remember { mutableStateOf(false) }
@@ -116,6 +118,37 @@ fun LiveMeterScreen(
 
     val todayEarnings = todayTrips.sumOf { it.currentFare }
     val todayDistanceKm = todayTrips.sumOf { it.totalDistanceMeters } / 1000.0
+
+    if (loadedTrip != null) {
+        val trip = loadedTrip!!
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .background(AppCardSecondary, RoundedCornerShape(12.dp))
+                .border(1.dp, AppCardBorder, RoundedCornerShape(12.dp))
+                .padding(12.dp)
+        ) {
+            Text("DESTINATION", color = TextSecondary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+            Text(trip.drop, color = Color.Black, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = {
+                    openGoogleMapsNavigation(
+                        context = context,
+                        destination = trip.drop,
+                        latitude = trip.dropLatitude,
+                        longitude = trip.dropLongitude,
+                        placeId = trip.dropPlaceId
+                    )
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = BrandRed)
+            ) {
+                Text("NAVIGATE TO DESTINATION", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
 
     CompactMeterDashboard(
         isTripActive = true,
