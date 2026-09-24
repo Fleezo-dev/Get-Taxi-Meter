@@ -97,7 +97,22 @@ jobs:
           set -e
           test -n "$GOOGLE_MAPS_API_KEY"
           echo "Google Maps API key secret: PRESENT"
-          ./gradlew --no-daemon assembleDebug
+          ./gradlew --no-daemon -PgoogleMapsApiKey="$GOOGLE_MAPS_API_KEY" assembleDebug
+
+      - name: Verify Google Maps key was packaged
+        shell: bash
+        run: |
+          set -e
+          GENERATED=$(find app/build/generated -type f -path '*buildConfig*' -name 'debug*' -print -quit)
+          if [ -z "$GENERATED" ]; then
+            GENERATED=$(find app/build -type f -name 'BuildConfig.java' -path '*debug*' -print -quit)
+          fi
+          test -n "$GENERATED"
+          grep -q 'GOOGLE_MAPS_API_KEY' "$GENERATED"
+          VALUE=$(grep 'GOOGLE_MAPS_API_KEY' "$GENERATED" | sed 's/.*= "\(.*\)";/\1/' | tr -d '[:space:]')
+          test -n "$VALUE"
+          test "$VALUE" != 'YOUR_GOOGLE_MAPS_API_KEY'
+          echo "Google Maps API key: PACKAGED IN DEBUG BuildConfig (value hidden)"
 
       - name: Print debug signing SHA-1
         run: ./gradlew --no-daemon :app:signingReport
