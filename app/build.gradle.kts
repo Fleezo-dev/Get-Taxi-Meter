@@ -72,6 +72,9 @@ secrets {
   propertiesFileName = ".env"
   defaultPropertiesFileName = ".env.example"
   ignoreList.add("FIREBASE_APPCHECK_DEBUG_TOKEN")
+  // Google Maps key is supplied explicitly through -PgoogleMapsApiKey in CI.
+  // Ignore the .env.example placeholder so the Secrets plugin cannot override BuildConfig.
+  ignoreList.add("GOOGLE_MAPS_API_KEY")
 }
 
 googleServices { missingGoogleServicesStrategy = MissingGoogleServicesStrategy.WARN }
