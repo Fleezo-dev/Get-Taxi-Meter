@@ -24,7 +24,7 @@ android {
 
     // Google Places key is injected only at build time from the CI environment.
     // The real key must never be committed to source control.
-    val googleMapsApiKey = System.getenv("GOOGLE_MAPS_API_KEY")?.trim().orEmpty()
+    val googleMapsApiKey = providers.gradleProperty("googleMapsApiKey").orNull?.trim().orEmpty()
     buildConfigField(
       "String",
       "GOOGLE_MAPS_API_KEY",
